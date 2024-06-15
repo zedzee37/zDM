@@ -3,3 +3,4 @@ src/.clangd
 *.o
 t.h
 fn.c
+*.gb
