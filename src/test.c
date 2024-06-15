@@ -1,5 +1,5 @@
 #include "cpu.h"
-#include "gameboy.h"
+#include "zdm.h"
 #include "memory.h"
 
 void debug(int argc, char **argv) {

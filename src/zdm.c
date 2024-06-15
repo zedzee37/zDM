@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
 	// Create window
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	SDL_Window *window = SDL_CreateWindow("GameBoy Emulationizer 9000", SDL_WINDOWPOS_UNDEFINED,
+	SDL_Window *window = SDL_CreateWindow("zDM", SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH*TARGET_SCALE, SCREEN_HEIGHT*TARGET_SCALE,
 			SDL_WINDOW_SHOWN);
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
