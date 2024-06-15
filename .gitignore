@@ -1,5 +1,5 @@
 src/.clangd
 .clangd
 *.o
-t.c
+t.h
 fn.c
