@@ -29,9 +29,21 @@ uint8_t read8(uint16_t p) {
 }
 
 uint16_t read16(uint16_t p) {
-    return (memory[p] << 8) | memory[p + 1];
+    return u16(memory[p], memory[p + 1]);
 }
 
 void write8(uint16_t address, uint8_t v) {
     memory[address] = v;
+}
+
+uint8_t msb(uint16_t v) {
+    return v >> 8;
+}
+
+uint8_t lsb(uint8_t v) {
+    return v & 0xFF;
+}
+
+uint16_t u16(uint8_t lsb, uint8_t msb) {
+    return (msb << 8) | lsb;
 }

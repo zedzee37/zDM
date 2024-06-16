@@ -7,28 +7,28 @@ uint16_t m16 = 0;
 struct registers registers;
 struct instruction instructions[256] = {
     {"NOP", 0, nop},           // 0x00 
-    {"LD BC d16", 2, NULL},    // 0x01 
+    {"LD BC d16", 2, ld_bc_nn},    // 0x01 
     {"LD (BC) A", 0, ld_bcm_a},    // 0x02 
     {"INC BC", 0, inc_bc},       // 0x03 
     {"INC B", 0, inc_b},        // 0x04 
     {"DEC B", 0, dec_b},        // 0x05 
-    {"LD B d8", 1, NULL},      // 0x06 
+    {"LD B d8", 1, ld_b_n8},      // 0x06 
     {"RLCA", 0, NULL},         // 0x07 
-    {"LD (a16) SP", 2, NULL},  // 0x08 
+    {"LD (a16) SP", 2, ld_nn_sp},  // 0x08 
     {"ADD HL BC", 0, NULL},    // 0x09 
     {"LD A (BC)", 0, ld_a_bcm},    // 0x0A 
     {"DEC BC", 0, dec_bc},       // 0x0B 
     {"INC C", 0, inc_c},        // 0x0C 
     {"DEC C", 0, dec_c},        // 0x0D 
-    {"LD C d8", 1, NULL},      // 0x0E 
+    {"LD C d8", 1, ld_c_n8},      // 0x0E 
     {"RRCA", 0, NULL},         // 0x0F 
     {"STOP 0", 0, NULL},       // 0x10 
-    {"LD DE d16", 2, NULL},    // 0x11 
+    {"LD DE d16", 2, ld_de_nn},    // 0x11 
     {"LD (DE) A", 0, ld_dem_a},    // 0x12 
     {"INC DE", 0, inc_de},       // 0x13 
     {"INC D", 0, inc_d},        // 0x14 
     {"DEC D", 0, dec_d},        // 0x15 
-    {"LD D d8", 1, NULL},      // 0x16 
+    {"LD D d8", 1, ld_d_n8},      // 0x16 
     {"RLA", 0, NULL},          // 0x17 
     {"JR r8", 1, NULL},        // 0x18 
     {"ADD HL DE", 0, NULL},    // 0x19 
@@ -36,10 +36,10 @@ struct instruction instructions[256] = {
     {"DEC DE", 0, dec_de},       // 0x1B 
     {"INC E", 0, inc_e},        // 0x1C 
     {"DEC E", 0, dec_e},        // 0x1D 
-    {"LD E d8", 1, NULL},      // 0x1E 
+    {"LD E d8", 1, ld_e_n8},      // 0x1E 
     {"RRA", 0, NULL},          // 0x1F 
     {"JR NZ r8", 1, NULL},     // 0x20 
-    {"LD HL d16", 2, NULL},    // 0x21 
+    {"LD HL d16", 2, ld_hl_nn},    // 0x21 
     {"LD (HL+) A", 0, ld_hli_a},   // 0x22 
     {"INC HL", 0, inc_hl},       // 0x23 
     {"INC H", 0, inc_h},        // 0x24 
@@ -52,10 +52,10 @@ struct instruction instructions[256] = {
     {"DEC HL", 0, dec_hl},       // 0x2B 
     {"INC L", 0, inc_l},        // 0x2C 
     {"DEC L", 0, dec_l},        // 0x2D 
-    {"LD L d8", 1, NULL},      // 0x2E 
+    {"LD L d8", 1, ld_l_n8},      // 0x2E 
     {"CPL", 0, NULL},          // 0x2F 
     {"JR NC r8", 1, NULL},     // 0x30 
-    {"LD SP d16", 2, NULL},    // 0x31 
+    {"LD SP d16", 2, ld_sp_n16},    // 0x31 
     {"LD (HL-) A", 0, ld_hld_a},   // 0x32 
     {"INC SP", 0, inc_sp},       // 0x33 
     {"INC (HL)", 0, NULL},     // 0x34 
@@ -68,7 +68,7 @@ struct instruction instructions[256] = {
     {"DEC SP", 0, dec_sp},       // 0x3B 
     {"INC A", 0, inc_a},        // 0x3C 
     {"DEC A", 0, dec_a},        // 0x3D 
-    {"LD A d8", 1, NULL},      // 0x3E 
+    {"LD A d8", 1, ld_a_n8},      // 0x3E 
     {"CCF", 0, NULL},          // 0x3F 
     {"LD B B", 0, ld_b_b},       // 0x40 
     {"LD B C", 0, ld_b_c},       // 0x41 
@@ -199,11 +199,11 @@ struct instruction instructions[256] = {
     {"CP (HL)", 0, NULL},      // 0xBE 
     {"CP A", 0, NULL},         // 0xBF 
     {"RET NZ", 0, NULL},       // 0xC0 
-    {"POP BC", 0, NULL},       // 0xC1 
+    {"POP BC", 0, pop_bc},       // 0xC1 
     {"JP NZ a16", 2, NULL},    // 0xC2 
     {"JP a16", 2, NULL},       // 0xC3 
     {"CALL NZ a16", 2, NULL},  // 0xC4 
-    {"PUSH BC", 0, NULL},      // 0xC5 
+    {"PUSH BC", 0, push_bc},      // 0xC5 
     {"ADD A d8", 1, NULL},     // 0xC6 
     {"RST 00H", 0, NULL},      // 0xC7 
     {"RET Z", 0, NULL},        // 0xC8 
@@ -215,10 +215,10 @@ struct instruction instructions[256] = {
     {"ADC A d8", 1, NULL},     // 0xCE 
     {"RST 08H", 0, NULL},      // 0xCF 
     {"RET NC", 0, NULL},       // 0xD0 
-    {"POP DE", 0, NULL},       // 0xD1 
+    {"POP DE", 0, pop_de},       // 0xD1 
     {"JP NC a16", 2, NULL},    // 0xD2 
     {"CALL NC a16", 2, NULL},  // 0xD4 
-    {"PUSH DE", 0, NULL},      // 0xD5 
+    {"PUSH DE", 0, push_de},      // 0xD5 
     {"SUB d8", 1, NULL},       // 0xD6 
     {"RST 10H", 0, NULL},      // 0xD7 
     {"RET C", 0, NULL},        // 0xD8 
@@ -228,9 +228,9 @@ struct instruction instructions[256] = {
     {"SBC A d8", 1, NULL},     // 0xDE 
     {"RST 18H", 0, NULL},      // 0xDF 
     {"LDH (a8) A", 1, ldh_n_a},   // 0xE0 
-    {"POP HL", 0, NULL},       // 0xE1 
+    {"POP HL", 0, pop_hl},       // 0xE1 
     {"LD (C) A", 0, ldh_c_a},     // 0xE2 
-    {"PUSH HL", 0, NULL},      // 0xE5 
+    {"PUSH HL", 0, push_hl},      // 0xE5 
     {"AND d8", 1, NULL},       // 0xE6 
     {"RST 20H", 0, NULL},      // 0xE7 
     {"ADD SP r8", 1, NULL},    // 0xE8 
@@ -239,13 +239,13 @@ struct instruction instructions[256] = {
     {"XOR d8", 1, NULL},       // 0xEE 
     {"RST 28H", 0, NULL},      // 0xEF 
     {"LDH A (a8)", 1, ldh_a_n},   // 0xF0 
-    {"POP AF", 0, NULL},       // 0xF1 
+    {"POP AF", 0, pop_af},       // 0xF1 
     {"LD A (C)", 0, ldh_a_c},     // 0xF2 
     {"DI", 0, NULL},           // 0xF3 
-    {"PUSH AF", 0, NULL},      // 0xF5 
+    {"PUSH AF", 0, push_af},      // 0xF5 
     {"OR d8", 1, NULL},        // 0xF6 
     {"RST 30H", 0, NULL},      // 0xF7 
-    {"LD HL SP+r8", 1, NULL},  // 0xF8 
+    {"LD HL SP+r8", 1, ld_hl_spe},  // 0xF8 
     {"LD SP HL", 0, NULL},     // 0xF9 
     {"LD A (a16)", 2, ld_a_nn},   // 0xFA 
     {"EI", 0, NULL},           // 0xFB 
@@ -391,12 +391,69 @@ void ld_dem_a() { write8(registers.de, registers.a); }
 void ld_a_nn() { registers.a = read8(m16); }
 void ld_nn_a() { write8(m16, registers.a); }
 
-void ldh_a_c() { registers.a = read8(0xFF | (registers.c >> 8)); }
-void ldh_c_a() { write8(0xFF | (registers.c >> 8), registers.a); }
-void ldh_a_n() { registers.a = read8(0xFF | (m8 >> 8)); }
-void ldh_n_a() { write8(0xFF | (m8 >> 8), registers.a); }
+void ldh_a_c() { registers.a = read8(u16(m8, 0xFF)); }
+void ldh_c_a() { write8(u16(m8, 0xFF), registers.a); }
+void ldh_a_n() { registers.a = read8(u16(m8, 0xFF)); }
+void ldh_n_a() { write8(u16(m8, 0xFF), registers.a); }
 
 void ld_a_hld() { registers.a = read8(registers.hl--); }
 void ld_hld_a() { write8(registers.hl--, registers.a); }
 void ld_a_hli() { registers.a = read8(registers.hl++); }
 void ld_hli_a() { write8(registers.hl++, registers.a); }
+
+void ld_bc_nn() { registers.bc = m16; }
+void ld_af_nn() { registers.af = m16; }
+void ld_de_nn() { registers.de = m16; }
+void ld_hl_nn() { registers.hl = m16; }
+
+void ld_nn_sp() { 
+    write8(m16, lsb(registers.sp));
+    write8(m16 + 1, msb(registers.sp));
+}
+void ld_sp_hl() { registers.sp = registers.hl; }
+
+void push_bc() {
+    registers.sp--;
+    write8(registers.sp--, registers.b);
+    write8(registers.sp, registers.c);
+}
+void push_af() {
+    registers.sp--;
+    write8(registers.sp--, registers.a);
+    write8(registers.sp, registers.f);
+}
+void push_de() {
+    registers.sp--;
+    write8(registers.sp--, registers.d);
+    write8(registers.sp, registers.e);
+}
+void push_hl() {
+    registers.sp--;
+    write8(registers.sp--, registers.h);
+    write8(registers.sp, registers.l);
+}
+
+void pop_bc() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    registers.bc = u16(lsb, msb);
+}
+void pop_af() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    registers.af = u16(lsb, msb);
+}
+void pop_de() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    registers.de = u16(lsb, msb);
+}
+void pop_hl() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    registers.hl = u16(lsb, msb);
+}
+
+void ld_hl_spe() {
+    // TODO: IMPLEMENT THIS
+}

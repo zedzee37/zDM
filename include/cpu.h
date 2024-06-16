@@ -185,3 +185,22 @@ void ld_a_hld();
 void ld_hld_a();
 void ld_a_hli();
 void ld_hli_a();
+
+void ld_bc_nn();
+void ld_af_nn();
+void ld_de_nn();
+void ld_hl_nn();
+
+void ld_nn_sp();
+
+void push_bc();
+void push_af();
+void push_de();
+void push_hl();
+
+void pop_bc();
+void pop_af();
+void pop_de();
+void pop_hl();
+
+void ld_hl_spe();
