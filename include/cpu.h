@@ -167,11 +167,21 @@ void ld_hl_l();
 
 void ld_hl_n8();
 
-void ld_a_bci();
-void ld_a_dei();
+void ld_a_bcm();
+void ld_a_dem();
 
-void ld_bci_a();
-void ld_dei_a();
+void ld_bcm_a();
+void ld_dem_a();
 
 void ld_a_nn();
+void ld_nn_a();
 
+void ldh_a_c();
+void ldh_c_a();
+void ldh_a_n();
+void ldh_n_a();
+
+void ld_a_hld();
+void ld_hld_a();
+void ld_a_hli();
+void ld_hli_a();

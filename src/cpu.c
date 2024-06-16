@@ -2,13 +2,13 @@
 #include "memory.h"
 #include <stdio.h>
 
-uint8_t a8 = 0;
-uint16_t a16 = 0;
+uint8_t m8 = 0;
+uint16_t m16 = 0;
 struct registers registers;
 struct instruction instructions[256] = {
     {"NOP", 0, nop},           // 0x00 
     {"LD BC d16", 2, NULL},    // 0x01 
-    {"LD (BC) A", 0, NULL},    // 0x02 
+    {"LD (BC) A", 0, ld_bcm_a},    // 0x02 
     {"INC BC", 0, inc_bc},       // 0x03 
     {"INC B", 0, inc_b},        // 0x04 
     {"DEC B", 0, dec_b},        // 0x05 
@@ -16,7 +16,7 @@ struct instruction instructions[256] = {
     {"RLCA", 0, NULL},         // 0x07 
     {"LD (a16) SP", 2, NULL},  // 0x08 
     {"ADD HL BC", 0, NULL},    // 0x09 
-    {"LD A (BC)", 0, NULL},    // 0x0A 
+    {"LD A (BC)", 0, ld_a_bcm},    // 0x0A 
     {"DEC BC", 0, dec_bc},       // 0x0B 
     {"INC C", 0, inc_c},        // 0x0C 
     {"DEC C", 0, dec_c},        // 0x0D 
@@ -24,7 +24,7 @@ struct instruction instructions[256] = {
     {"RRCA", 0, NULL},         // 0x0F 
     {"STOP 0", 0, NULL},       // 0x10 
     {"LD DE d16", 2, NULL},    // 0x11 
-    {"LD (DE) A", 0, NULL},    // 0x12 
+    {"LD (DE) A", 0, ld_dem_a},    // 0x12 
     {"INC DE", 0, inc_de},       // 0x13 
     {"INC D", 0, inc_d},        // 0x14 
     {"DEC D", 0, dec_d},        // 0x15 
@@ -32,15 +32,15 @@ struct instruction instructions[256] = {
     {"RLA", 0, NULL},          // 0x17 
     {"JR r8", 1, NULL},        // 0x18 
     {"ADD HL DE", 0, NULL},    // 0x19 
-    {"LD A (DE)", 0, NULL},    // 0x1A 
-    {"DEC DE", 0, NULL},       // 0x1B 
+    {"LD A (DE)", 0, ld_a_dem},    // 0x1A 
+    {"DEC DE", 0, dec_de},       // 0x1B 
     {"INC E", 0, inc_e},        // 0x1C 
     {"DEC E", 0, dec_e},        // 0x1D 
     {"LD E d8", 1, NULL},      // 0x1E 
     {"RRA", 0, NULL},          // 0x1F 
     {"JR NZ r8", 1, NULL},     // 0x20 
     {"LD HL d16", 2, NULL},    // 0x21 
-    {"LD (HL+) A", 0, NULL},   // 0x22 
+    {"LD (HL+) A", 0, ld_hli_a},   // 0x22 
     {"INC HL", 0, inc_hl},       // 0x23 
     {"INC H", 0, inc_h},        // 0x24 
     {"DEC H", 0, dec_h},        // 0x25 
@@ -48,7 +48,7 @@ struct instruction instructions[256] = {
     {"DAA", 0, NULL},          // 0x27 
     {"JR Z r8", 1, NULL},      // 0x28 
     {"ADD HL HL", 0, NULL},    // 0x29 
-    {"LD A (HL+)", 0, NULL},   // 0x2A 
+    {"LD A (HL+)", 0, ld_a_hli},   // 0x2A 
     {"DEC HL", 0, dec_hl},       // 0x2B 
     {"INC L", 0, inc_l},        // 0x2C 
     {"DEC L", 0, dec_l},        // 0x2D 
@@ -56,7 +56,7 @@ struct instruction instructions[256] = {
     {"CPL", 0, NULL},          // 0x2F 
     {"JR NC r8", 1, NULL},     // 0x30 
     {"LD SP d16", 2, NULL},    // 0x31 
-    {"LD (HL-) A", 0, NULL},   // 0x32 
+    {"LD (HL-) A", 0, ld_hld_a},   // 0x32 
     {"INC SP", 0, inc_sp},       // 0x33 
     {"INC (HL)", 0, NULL},     // 0x34 
     {"DEC (HL)", 0, NULL},     // 0x35 
@@ -64,76 +64,76 @@ struct instruction instructions[256] = {
     {"SCF", 0, NULL},          // 0x37 
     {"JR C r8", 1, NULL},      // 0x38 
     {"ADD HL SP", 0, NULL},    // 0x39 
-    {"LD A (HL-)", 0, NULL},   // 0x3A 
+    {"LD A (HL-)", 0, ld_a_hld},   // 0x3A 
     {"DEC SP", 0, dec_sp},       // 0x3B 
     {"INC A", 0, inc_a},        // 0x3C 
     {"DEC A", 0, dec_a},        // 0x3D 
     {"LD A d8", 1, NULL},      // 0x3E 
     {"CCF", 0, NULL},          // 0x3F 
-    {"LD B B", 0, NULL},       // 0x40 
-    {"LD B C", 0, NULL},       // 0x41 
-    {"LD B D", 0, NULL},       // 0x42 
-    {"LD B E", 0, NULL},       // 0x43 
-    {"LD B H", 0, NULL},       // 0x44 
-    {"LD B L", 0, NULL},       // 0x45 
-    {"LD B (HL)", 0, NULL},    // 0x46 
-    {"LD B A", 0, NULL},       // 0x47 
-    {"LD C B", 0, NULL},       // 0x48 
-    {"LD C C", 0, NULL},       // 0x49 
-    {"LD C D", 0, NULL},       // 0x4A 
-    {"LD C E", 0, NULL},       // 0x4B 
-    {"LD C H", 0, NULL},       // 0x4C 
-    {"LD C L", 0, NULL},       // 0x4D 
-    {"LD C (HL)", 0, NULL},    // 0x4E 
-    {"LD C A", 0, NULL},       // 0x4F 
-    {"LD D B", 0, NULL},       // 0x50 
-    {"LD D C", 0, NULL},       // 0x51 
-    {"LD D D", 0, NULL},       // 0x52 
-    {"LD D E", 0, NULL},       // 0x53 
-    {"LD D H", 0, NULL},       // 0x54 
-    {"LD D L", 0, NULL},       // 0x55 
-    {"LD D (HL)", 0, NULL},    // 0x56 
-    {"LD D A", 0, NULL},       // 0x57 
-    {"LD E B", 0, NULL},       // 0x58 
-    {"LD E C", 0, NULL},       // 0x59 
-    {"LD E D", 0, NULL},       // 0x5A 
-    {"LD E E", 0, NULL},       // 0x5B 
-    {"LD E H", 0, NULL},       // 0x5C 
-    {"LD E L", 0, NULL},       // 0x5D 
-    {"LD E (HL)", 0, NULL},    // 0x5E 
-    {"LD E A", 0, NULL},       // 0x5F 
-    {"LD H B", 0, NULL},       // 0x60 
-    {"LD H C", 0, NULL},       // 0x61 
-    {"LD H D", 0, NULL},       // 0x62 
-    {"LD H E", 0, NULL},       // 0x63 
-    {"LD H H", 0, NULL},       // 0x64 
-    {"LD H L", 0, NULL},       // 0x65 
-    {"LD H (HL)", 0, NULL},    // 0x66 
-    {"LD H A", 0, NULL},       // 0x67 
-    {"LD L B", 0, NULL},       // 0x68 
-    {"LD L C", 0, NULL},       // 0x69 
-    {"LD L D", 0, NULL},       // 0x6A 
-    {"LD L E", 0, NULL},       // 0x6B 
-    {"LD L H", 0, NULL},       // 0x6C 
-    {"LD L L", 0, NULL},       // 0x6D 
-    {"LD L (HL)", 0, NULL},    // 0x6E 
-    {"LD L A", 0, NULL},       // 0x6F 
-    {"LD (HL) B", 0, NULL},    // 0x70 
-    {"LD (HL) C", 0, NULL},    // 0x71 
-    {"LD (HL) D", 0, NULL},    // 0x72 
-    {"LD (HL) E", 0, NULL},    // 0x73 
-    {"LD (HL) H", 0, NULL},    // 0x74 
-    {"LD (HL) L", 0, NULL},    // 0x75 
+    {"LD B B", 0, ld_b_b},       // 0x40 
+    {"LD B C", 0, ld_b_c},       // 0x41 
+    {"LD B D", 0, ld_b_d},       // 0x42 
+    {"LD B E", 0, ld_b_e},       // 0x43 
+    {"LD B H", 0, ld_b_h},       // 0x44 
+    {"LD B L", 0, ld_b_l},       // 0x45 
+    {"LD B (HL)", 0, ld_b_hl},    // 0x46 
+    {"LD B A", 0, ld_b_a},       // 0x47 
+    {"LD C B", 0, ld_c_b},       // 0x48 
+    {"LD C C", 0, ld_c_c},       // 0x49 
+    {"LD C D", 0, ld_c_d},       // 0x4A 
+    {"LD C E", 0, ld_c_e},       // 0x4B 
+    {"LD C H", 0, ld_c_h},       // 0x4C 
+    {"LD C L", 0, ld_c_l},       // 0x4D 
+    {"LD C (HL)", 0, ld_c_hl},    // 0x4E 
+    {"LD C A", 0, ld_c_a},       // 0x4F 
+    {"LD D B", 0, ld_d_b},       // 0x50 
+    {"LD D C", 0, ld_d_c},       // 0x51 
+    {"LD D D", 0, ld_d_d},       // 0x52 
+    {"LD D E", 0, ld_d_e},       // 0x53 
+    {"LD D H", 0, ld_d_h},       // 0x54 
+    {"LD D L", 0, ld_d_l},       // 0x55 
+    {"LD D (HL)", 0, ld_d_hl},    // 0x56 
+    {"LD D A", 0, ld_d_a},       // 0x57 
+    {"LD E B", 0, ld_e_b},       // 0x58 
+    {"LD E C", 0, ld_e_c},       // 0x59 
+    {"LD E D", 0, ld_e_d},       // 0x5A 
+    {"LD E E", 0, ld_e_e},       // 0x5B 
+    {"LD E H", 0, ld_e_h},       // 0x5C 
+    {"LD E L", 0, ld_e_l},       // 0x5D 
+    {"LD E (HL)", 0, ld_e_hl},    // 0x5E 
+    {"LD E A", 0, ld_e_a},       // 0x5F 
+    {"LD H B", 0, ld_h_b},       // 0x60 
+    {"LD H C", 0, ld_h_c},       // 0x61 
+    {"LD H D", 0, ld_h_d},       // 0x62 
+    {"LD H E", 0, ld_h_e},       // 0x63 
+    {"LD H H", 0, ld_h_h},       // 0x64 
+    {"LD H L", 0, ld_h_l},       // 0x65 
+    {"LD H (HL)", 0, ld_h_hl},    // 0x66 
+    {"LD H A", 0, ld_h_a},       // 0x67 
+    {"LD L B", 0, ld_l_b},       // 0x68 
+    {"LD L C", 0, ld_l_c},       // 0x69 
+    {"LD L D", 0, ld_l_d},       // 0x6A 
+    {"LD L E", 0, ld_l_e},       // 0x6B 
+    {"LD L H", 0, ld_l_h},       // 0x6C 
+    {"LD L L", 0, ld_l_l},       // 0x6D 
+    {"LD L (HL)", 0, ld_l_hl},    // 0x6E 
+    {"LD L A", 0, ld_l_a},       // 0x6F 
+    {"LD (HL) B", 0, ld_hl_b},    // 0x70 
+    {"LD (HL) C", 0, ld_hl_c},    // 0x71 
+    {"LD (HL) D", 0, ld_hl_d},    // 0x72 
+    {"LD (HL) E", 0, ld_hl_e},    // 0x73 
+    {"LD (HL) H", 0, ld_hl_h},    // 0x74 
+    {"LD (HL) L", 0, ld_hl_l},    // 0x75 
     {"HALT", 0, NULL},         // 0x76 
-    {"LD (HL) A", 0, NULL},    // 0x77 
-    {"LD A B", 0, NULL},       // 0x78 
-    {"LD A C", 0, NULL},       // 0x79 
-    {"LD A D", 0, NULL},       // 0x7A 
-    {"LD A E", 0, NULL},       // 0x7B 
-    {"LD A H", 0, NULL},       // 0x7C 
-    {"LD A L", 0, NULL},       // 0x7D 
-    {"LD A (HL)", 0, NULL},    // 0x7E 
-    {"LD A A", 0, NULL},       // 0x7F 
+    {"LD (HL) A", 0, ld_hl_a},    // 0x77 
+    {"LD A B", 0, ld_a_b},       // 0x78 
+    {"LD A C", 0, ld_a_c},       // 0x79 
+    {"LD A D", 0, ld_a_d},       // 0x7A 
+    {"LD A E", 0, ld_a_e},       // 0x7B 
+    {"LD A H", 0, ld_a_h},       // 0x7C 
+    {"LD A L", 0, ld_a_l},       // 0x7D 
+    {"LD A (HL)", 0, ld_a_hl},    // 0x7E 
+    {"LD A A", 0, ld_a_a},       // 0x7F 
     {"ADD A B", 0, NULL},      // 0x80 
     {"ADD A C", 0, NULL},      // 0x81 
     {"ADD A D", 0, NULL},      // 0x82 
@@ -227,27 +227,27 @@ struct instruction instructions[256] = {
     {"CALL C a16", 2, NULL},   // 0xDC 
     {"SBC A d8", 1, NULL},     // 0xDE 
     {"RST 18H", 0, NULL},      // 0xDF 
-    {"LDH (a8) A", 1, NULL},   // 0xE0 
+    {"LDH (a8) A", 1, ldh_n_a},   // 0xE0 
     {"POP HL", 0, NULL},       // 0xE1 
-    {"LD (C) A", 0, NULL},     // 0xE2 
+    {"LD (C) A", 0, ldh_c_a},     // 0xE2 
     {"PUSH HL", 0, NULL},      // 0xE5 
     {"AND d8", 1, NULL},       // 0xE6 
     {"RST 20H", 0, NULL},      // 0xE7 
     {"ADD SP r8", 1, NULL},    // 0xE8 
     {"JP (HL)", 0, NULL},      // 0xE9 
-    {"LD (a16) A", 2, NULL},   // 0xEA 
+    {"LD (a16) A", 2, ld_nn_a},   // 0xEA 
     {"XOR d8", 1, NULL},       // 0xEE 
     {"RST 28H", 0, NULL},      // 0xEF 
-    {"LDH A (a8)", 1, NULL},   // 0xF0 
+    {"LDH A (a8)", 1, ldh_a_n},   // 0xF0 
     {"POP AF", 0, NULL},       // 0xF1 
-    {"LD A (C)", 0, NULL},     // 0xF2 
+    {"LD A (C)", 0, ldh_a_c},     // 0xF2 
     {"DI", 0, NULL},           // 0xF3 
     {"PUSH AF", 0, NULL},      // 0xF5 
     {"OR d8", 1, NULL},        // 0xF6 
     {"RST 30H", 0, NULL},      // 0xF7 
     {"LD HL SP+r8", 1, NULL},  // 0xF8 
     {"LD SP HL", 0, NULL},     // 0xF9 
-    {"LD A (a16)", 2, NULL},   // 0xFA 
+    {"LD A (a16)", 2, ld_a_nn},   // 0xFA 
     {"EI", 0, NULL},           // 0xFB 
     {"CP d8", 1, NULL},        // 0xFE 
     {"RST 38H", 0, NULL},      // 0xFF 
@@ -258,10 +258,10 @@ bool execute() {
     struct instruction instruction = instructions[op];
 
     if (instruction.operand_size == 1)
-        a8 = read8(++pc);
+        m8 = read8(++pc);
     if (instruction.operand_size == 2) {
         pc += 2;
-        a16 = read16(pc);
+        m16 = read16(pc);
     }
 
     if (instruction.fn != NULL) {
@@ -302,17 +302,17 @@ void dec_l() { registers.l--; }
 void dec_sp() { registers.sp--; }
 void dec_a() { registers.a--; }
 
-void ld_bc_n16() { registers.bc = a16; }
-void ld_b_n8() { registers.b = a8; }
-void ld_c_n8() { registers.c = a8; }
-void ld_de_n16() { registers.de = a16; }
-void ld_d_n8() { registers.d = a8; }
-void ld_e_n8() { registers.e = a8; }
-void ld_hl_n16() { registers.hl = a16; }
-void ld_h_n8() { registers.h = a8; }
-void ld_l_n8() { registers.l = a8; }
-void ld_sp_n16() { registers.sp = a16; }
-void ld_a_n8() { registers.a = a8; }
+void ld_bc_n16() { registers.bc = m16; }
+void ld_b_n8() { registers.b = m8; }
+void ld_c_n8() { registers.c = m8; }
+void ld_de_n16() { registers.de = m16; }
+void ld_d_n8() { registers.d = m8; }
+void ld_e_n8() { registers.e = m8; }
+void ld_hl_n16() { registers.hl = m16; }
+void ld_h_n8() { registers.h = m8; }
+void ld_l_n8() { registers.l = m8; }
+void ld_sp_n16() { registers.sp = m16; }
+void ld_a_n8() { registers.a = m8; }
 
 void ld_b_b() { registers.b = registers.b; }
 void ld_b_c() { registers.b = registers.c; }
@@ -380,12 +380,23 @@ void ld_hl_e() { write8(registers.hl, registers.e); }
 void ld_hl_h() { write8(registers.hl, registers.h); }
 void ld_hl_l() { write8(registers.hl, registers.l); }
 
-void ld_hl_n8() { write8(registers.hl, a8); }
+void ld_hl_n8() { write8(registers.hl, m8); }
 
-void ld_a_bci() { registers.a = read8(registers.bc); }
-void ld_a_dei() { registers.a = read8(registers.de); }
+void ld_a_bcm() { registers.a = read8(registers.bc); }
+void ld_a_dem() { registers.a = read8(registers.de); }
 
-void ld_bci_a() { write8(registers.bc, registers.a); }
-void ld_dei_a() { write8(registers.de, registers.a); }
+void ld_bcm_a() { write8(registers.bc, registers.a); }
+void ld_dem_a() { write8(registers.de, registers.a); }
 
-void ld_a_nn() { registers.a = read8(a16); }
+void ld_a_nn() { registers.a = read8(m16); }
+void ld_nn_a() { write8(m16, registers.a); }
+
+void ldh_a_c() { registers.a = read8(0xFF | (registers.c >> 8)); }
+void ldh_c_a() { write8(0xFF | (registers.c >> 8), registers.a); }
+void ldh_a_n() { registers.a = read8(0xFF | (m8 >> 8)); }
+void ldh_n_a() { write8(0xFF | (m8 >> 8), registers.a); }
+
+void ld_a_hld() { registers.a = read8(registers.hl--); }
+void ld_hld_a() { write8(registers.hl--, registers.a); }
+void ld_a_hli() { registers.a = read8(registers.hl++); }
+void ld_hli_a() { write8(registers.hl++, registers.a); }

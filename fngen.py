@@ -11,21 +11,23 @@ with open(OUTPUT, "w") as o:
     unprefixed = data["unprefixed"]
    
     for op in unprefixed:
-        r = unprefixed[op]
-        operands = r["operands"] 
-        size = r["bytes"] - 1
+        d = unprefixed[op]
+        if "mnemonic" not in d:
+            continue
+        mnenonic = d["mnemonic"]
+        op1 = None
+        op2 = None
         
-        ops = []
-        for operand in operands:
-            if "name" in operand:
-                ops.append(operand["name"])
-        if r["mnemonic"] == "LD" and len(ops) == 2 and ops[0] == "HL" and ops[1][0] == "n": 
-            mnemonic = r["mnemonic"] 
-            name = f"{mnemonic.lower()}_{ops[0].lower()}_{ops[1].lower()}"
-            a = "a8" if size == 1 else "a16"
-            header = f"void " + name + "() {\n" 
-            body = f"   write8(registers.{ops[0].lower()}, {a});\n" 
-            end = "}\n"
-            _ = o.write(header)
-            _ = o.write(body)
-            _ = o.write(end)
+        if "operand1" in d:
+            op1 = d["operand1"].lower()
+        if "operand2" in d:
+            op2 = d["operand2"].lower()
+
+        if op2 and op1 and mnenonic == "sub" and len(op1) == 1 and len(op2) == 1:
+            fn_name = f"void sub_{op1}_{op2}()"
+            fn_body = f"    registers.{op1} += registers.{op2};"
+            
+            _ = o.write(fn_name + " {\n")
+            _ = o.write(fn_body + "\n")
+            _ = o.write("}\n")
+
