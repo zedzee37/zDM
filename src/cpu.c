@@ -151,22 +151,22 @@ struct instruction instructions[256] = {
     {"ADC A L", 0, adc_l},      // 0x8D 
     {"ADC A (HL)", 0, adc_hl},   // 0x8E 
     {"ADC A A", 0, adc_a},      // 0x8F 
-    {"SUB B", 0, NULL},        // 0x90 
-    {"SUB C", 0, NULL},        // 0x91 
-    {"SUB D", 0, NULL},        // 0x92 
-    {"SUB E", 0, NULL},        // 0x93 
-    {"SUB H", 0, NULL},        // 0x94 
-    {"SUB L", 0, NULL},        // 0x95 
-    {"SUB (HL)", 0, NULL},     // 0x96 
-    {"SUB A", 0, NULL},        // 0x97 
-    {"SBC A B", 0, NULL},      // 0x98 
-    {"SBC A C", 0, NULL},      // 0x99 
-    {"SBC A D", 0, NULL},      // 0x9A 
-    {"SBC A E", 0, NULL},      // 0x9B 
-    {"SBC A H", 0, NULL},      // 0x9C 
-    {"SBC A L", 0, NULL},      // 0x9D 
-    {"SBC A (HL)", 0, NULL},   // 0x9E 
-    {"SBC A A", 0, NULL},      // 0x9F 
+    {"SUB B", 0, sub_b},        // 0x90 
+    {"SUB C", 0, sub_c},        // 0x91 
+    {"SUB D", 0, sub_d},        // 0x92 
+    {"SUB E", 0, sub_e},        // 0x93 
+    {"SUB H", 0, sub_h},        // 0x94 
+    {"SUB L", 0, sub_l},        // 0x95 
+    {"SUB (HL)", 0, sub_hl},     // 0x96 
+    {"SUB A", 0, sub_a},        // 0x97 
+    {"SBC A B", 0, scb_b},      // 0x98 
+    {"SBC A C", 0, scb_c},      // 0x99 
+    {"SBC A D", 0, scb_d},      // 0x9A 
+    {"SBC A E", 0, scb_e},      // 0x9B 
+    {"SBC A H", 0, scb_h},      // 0x9C 
+    {"SBC A L", 0, scb_l},      // 0x9D 
+    {"SBC A (HL)", 0, scb_hl},   // 0x9E 
+    {"SBC A A", 0, scb_a},      // 0x9F 
     {"AND B", 0, NULL},        // 0xA0 
     {"AND C", 0, NULL},        // 0xA1 
     {"AND D", 0, NULL},        // 0xA2 
@@ -220,13 +220,13 @@ struct instruction instructions[256] = {
     {"JP NC a16", 2, NULL},    // 0xD2 
     {"CALL NC a16", 2, NULL},  // 0xD4 
     {"PUSH DE", 0, push_de},      // 0xD5 
-    {"SUB d8", 1, NULL},       // 0xD6 
+    {"SUB d8", 1, sub_n},       // 0xD6 
     {"RST 10H", 0, NULL},      // 0xD7 
     {"RET C", 0, NULL},        // 0xD8 
     {"RETI", 0, NULL},         // 0xD9 
     {"JP C a16", 2, NULL},     // 0xDA 
     {"CALL C a16", 2, NULL},   // 0xDC 
-    {"SBC A d8", 1, NULL},     // 0xDE 
+    {"SBC A d8", 1, scb_n},     // 0xDE 
     {"RST 18H", 0, NULL},      // 0xDF 
     {"LDH (a8) A", 1, ldh_n_a},   // 0xE0 
     {"POP HL", 0, pop_hl},       // 0xE1 
@@ -284,8 +284,21 @@ uint8_t add8(uint8_t a, uint8_t b) {
 
 uint8_t adc8(uint8_t a, uint8_t b, uint8_t c) {
     uint8_t result;
-    result = a + b + (c & FLAGS_ZERO);
+    result = a + b + c;
     set_add_flags(result, a, b);
+    return result;
+}
+
+uint8_t sub8(uint8_t a, uint8_t b) {
+    uint8_t result;
+    result = a - b;
+    set_sub_flags(result, a, b);
+    return result;
+}
+uint8_t subc8(uint8_t a, uint8_t b, uint8_t c) {
+    uint8_t result;
+    result = a - b - c;
+    set_sub_flags(result, a, b);
     return result;
 }
 
@@ -295,6 +308,19 @@ void set_add_flags(uint8_t result, uint8_t a, uint8_t b) {
     }
     registers.f ^= FLAGS_NEGATIVE;
     if ((((a & 0x0F) + (b & 0x0F)) & 0x10) > 0) {
+        registers.f |= FLAGS_HALFCARRY;
+    }
+    if (result < a || result < b) {
+        registers.f |= FLAGS_CARRY;
+    }
+}
+
+void set_sub_flags(uint8_t result, uint8_t a, uint8_t b) {
+    if (result == 0) {
+        registers.f |= FLAGS_ZERO;
+    }
+    registers.f ^= FLAGS_NEGATIVE;
+    if ((((a & 0x0F) - (b & 0x0F)) & 0x10) > 0) {
         registers.f |= FLAGS_HALFCARRY;
     }
     if (result < a || result < b) {
@@ -556,4 +582,76 @@ void adc_hl() {
 void adc_n() {
     uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
     registers.a = adc8(registers.a, m8, c);
+}
+
+void sub_a() {
+    registers.a = sub8(registers.a, registers.a);
+}
+void sub_b() {
+    registers.a = sub8(registers.a, registers.b);
+}
+void sub_c() {
+    registers.a = sub8(registers.a, registers.c);
+}
+void sub_d() {
+    registers.a = sub8(registers.a, registers.d);
+}
+void sub_e() {
+    registers.a = sub8(registers.a, registers.e);
+}
+void sub_f() {
+    registers.a = sub8(registers.a, registers.f);
+}
+void sub_h() {
+    registers.a = sub8(registers.a, registers.h);
+}
+void sub_l() {
+    registers.a = sub8(registers.a, registers.l);
+}
+void sub_hl() {
+    registers.a = sub8(registers.a, read8(registers.hl));
+}
+void sub_n() {
+    registers.a = sub8(registers.a, m8);
+}
+
+void scb_a() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.a, c);
+}
+void scb_b() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.b, c);
+}
+void scb_c() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.c, c);
+}
+void scb_d() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.d, c);
+}
+void scb_e() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.e, c);
+}
+void scb_f() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.f, c);
+}
+void scb_h() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.h, c);
+}
+void scb_l() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, registers.l, c);
+}
+void scb_hl() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, read8(registers.hl), c);
+}
+void scb_n() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = subc8(registers.a, m8, c);
 }

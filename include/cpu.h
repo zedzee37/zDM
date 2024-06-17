@@ -65,7 +65,10 @@ extern bool execute();
 // MSB = sum LSB = carry
 extern uint8_t add8(uint8_t a, uint8_t b);
 extern uint8_t adc8(uint8_t a, uint8_t b, uint8_t c);
+extern uint8_t sub8(uint8_t a, uint8_t b);
+extern uint8_t subc8(uint8_t a, uint8_t b, uint8_t c);
 extern void set_add_flags(uint8_t result, uint8_t a, uint8_t b);
+extern void set_sub_flags(uint8_t result, uint8_t a, uint8_t b);
 
 void nop();
 void rst_38();
@@ -236,3 +239,25 @@ void adc_h();
 void adc_l();
 void adc_hl();
 void adc_n();
+
+void sub_a();
+void sub_b();
+void sub_c();
+void sub_d();
+void sub_e();
+void sub_f();
+void sub_h();
+void sub_l();
+void sub_hl();
+void sub_n();
+
+void scb_a();
+void scb_b();
+void scb_c();
+void scb_d();
+void scb_e();
+void scb_f();
+void scb_h();
+void scb_l();
+void scb_hl();
+void scb_n();
