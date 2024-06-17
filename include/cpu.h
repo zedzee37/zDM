@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define FLAGS_ZERO (1 << 7)
+#define FLAGS_NEGATIVE (1 << 6)
+#define FLAGS_HALFCARRY (1 << 5)
+#define FLAGS_CARRY (1 << 4)
+
 struct registers {
 	struct {
 		union {
@@ -57,6 +62,11 @@ extern struct registers registers;
 extern struct instruction instructions[256];
 
 extern bool execute();
+// MSB = sum LSB = carry
+extern uint8_t add8(uint8_t a, uint8_t b);
+extern uint8_t adc8(uint8_t a, uint8_t b, uint8_t c);
+extern void set_add_flags(uint8_t result, uint8_t a, uint8_t b);
+
 void nop();
 void rst_38();
 
@@ -204,3 +214,25 @@ void pop_de();
 void pop_hl();
 
 void ld_hl_spe();
+
+void add_a();
+void add_b();
+void add_c();
+void add_f();
+void add_d();
+void add_e();
+void add_h();
+void add_l();
+void add_hl();
+void add_n();
+
+void adc_a();
+void adc_b();
+void adc_c();
+void adc_f();
+void adc_d();
+void adc_e();
+void adc_h();
+void adc_l();
+void adc_hl();
+void adc_n();

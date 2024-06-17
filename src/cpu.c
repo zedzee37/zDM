@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "memory.h"
+#include <stdint.h>
 #include <stdio.h>
 
 uint8_t m8 = 0;
@@ -134,22 +135,22 @@ struct instruction instructions[256] = {
     {"LD A L", 0, ld_a_l},       // 0x7D 
     {"LD A (HL)", 0, ld_a_hl},    // 0x7E 
     {"LD A A", 0, ld_a_a},       // 0x7F 
-    {"ADD A B", 0, NULL},      // 0x80 
-    {"ADD A C", 0, NULL},      // 0x81 
-    {"ADD A D", 0, NULL},      // 0x82 
-    {"ADD A E", 0, NULL},      // 0x83 
-    {"ADD A H", 0, NULL},      // 0x84 
-    {"ADD A L", 0, NULL},      // 0x85 
-    {"ADD A (HL)", 0, NULL},   // 0x86 
-    {"ADD A A", 0, NULL},      // 0x87 
-    {"ADC A B", 0, NULL},      // 0x88 
-    {"ADC A C", 0, NULL},      // 0x89 
-    {"ADC A D", 0, NULL},      // 0x8A 
-    {"ADC A E", 0, NULL},      // 0x8B 
-    {"ADC A H", 0, NULL},      // 0x8C 
-    {"ADC A L", 0, NULL},      // 0x8D 
-    {"ADC A (HL)", 0, NULL},   // 0x8E 
-    {"ADC A A", 0, NULL},      // 0x8F 
+    {"ADD A B", 0, add_b},      // 0x80 
+    {"ADD A C", 0, add_c},      // 0x81 
+    {"ADD A D", 0, add_d},      // 0x82 
+    {"ADD A E", 0, add_e},      // 0x83 
+    {"ADD A H", 0, add_h},      // 0x84 
+    {"ADD A L", 0, add_l},      // 0x85 
+    {"ADD A (HL)", 0, add_hl},   // 0x86 
+    {"ADD A A", 0, add_a},      // 0x87 
+    {"ADC A B", 0, adc_b},      // 0x88 
+    {"ADC A C", 0, adc_c},      // 0x89 
+    {"ADC A D", 0, adc_d},      // 0x8A 
+    {"ADC A E", 0, adc_e},      // 0x8B 
+    {"ADC A H", 0, adc_h},      // 0x8C 
+    {"ADC A L", 0, adc_l},      // 0x8D 
+    {"ADC A (HL)", 0, adc_hl},   // 0x8E 
+    {"ADC A A", 0, adc_a},      // 0x8F 
     {"SUB B", 0, NULL},        // 0x90 
     {"SUB C", 0, NULL},        // 0x91 
     {"SUB D", 0, NULL},        // 0x92 
@@ -204,7 +205,7 @@ struct instruction instructions[256] = {
     {"JP a16", 2, NULL},       // 0xC3 
     {"CALL NZ a16", 2, NULL},  // 0xC4 
     {"PUSH BC", 0, push_bc},      // 0xC5 
-    {"ADD A d8", 1, NULL},     // 0xC6 
+    {"ADD A d8", 1, add_n},     // 0xC6 
     {"RST 00H", 0, NULL},      // 0xC7 
     {"RET Z", 0, NULL},        // 0xC8 
     {"RET", 0, NULL},          // 0xC9 
@@ -272,6 +273,33 @@ bool execute() {
     }
     pc++;
     return true;
+}
+
+uint8_t add8(uint8_t a, uint8_t b) {
+    uint8_t result;
+    result = a + b;
+    set_add_flags(result, a, b);
+    return result;
+}
+
+uint8_t adc8(uint8_t a, uint8_t b, uint8_t c) {
+    uint8_t result;
+    result = a + b + (c & FLAGS_ZERO);
+    set_add_flags(result, a, b);
+    return result;
+}
+
+void set_add_flags(uint8_t result, uint8_t a, uint8_t b) {
+    if (result == 0) {
+        registers.f |= FLAGS_ZERO;
+    }
+    registers.f ^= FLAGS_NEGATIVE;
+    if ((((a & 0x0F) + (b & 0x0F)) & 0x10) > 0) {
+        registers.f |= FLAGS_HALFCARRY;
+    }
+    if (result < a || result < b) {
+        registers.f |= FLAGS_CARRY;
+    }
 }
 
 void nop() {}
@@ -456,4 +484,76 @@ void pop_hl() {
 
 void ld_hl_spe() {
     // TODO: IMPLEMENT THIS
+}
+
+void add_a() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_b() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_c() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_f() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_d() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_e() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_h() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_l() {
+    registers.a = add8(registers.a, registers.a);
+}
+void add_hl() {
+    registers.a = add8(registers.a, read8(registers.hl));
+}
+void add_n() {
+    registers.a = add8(registers.a, m8);
+}
+
+void adc_a() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.a, c);
+}
+void adc_b() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.b, c);
+}
+void adc_c() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.c, c);
+}
+void adc_f() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.f, c);
+}
+void adc_d() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.d, c);
+}
+void adc_e() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.e, c);
+}
+void adc_h() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.h, c);
+}
+void adc_l() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, registers.l, c);
+}
+void adc_hl() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, read8(registers.hl), c);
+}
+void adc_n() {
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
+    registers.a = adc8(registers.a, m8, c);
 }
