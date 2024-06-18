@@ -3,6 +3,44 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define MULTI_MACRO(m) \
+    m(a) \
+    m(f) \
+    m(b) \
+    m(c) \
+    m(d) \
+    m(e) \
+    m(h) \
+    m(l)
+#define INC(r) void inc_##r () { registers.r ++; }
+#define DEC(r) void dec_##r () { registers.r --; }
+#define ADD(r) void add_##r () { registers.a = add8(registers.a, registers.r); } 
+#define SUB(r) void sub_##r () { registers.a = sub8(registers.a, registers.r); }
+#define ADC(r) void adc_##r () { \
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY; \
+    registers.a = adc8(registers.a, registers.r, c); \
+}
+#define SBC(r) void sbc_##r () { \
+    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY; \
+    registers.a = subc8(registers.a, registers.r, c); \
+}
+#define CP(r) void cp_##r () { sub8(registers.a, registers.r); }
+#define AND(r) void and_##r () { \
+    uint8_t result; \
+    registers.a &= registers.r; \
+    set_logic_flags(result); \
+}
+#define OR(r) void or_##r () { \
+    uint8_t result; \
+    registers.a |= registers.r; \
+    set_logic_flags(result); \
+}
+#define XOR(r) void xor_##r () { \
+    uint8_t result; \
+    registers.a ^= registers.r; \
+    set_logic_flags(result); \
+}
+
 uint8_t m8 = 0;
 uint16_t m16 = 0;
 struct registers registers;
@@ -175,22 +213,22 @@ struct instruction instructions[256] = {
     {"AND L", 0, and_l},        // 0xA5 
     {"AND (HL)", 0, and_hl},     // 0xA6 
     {"AND A", 0, and_a},        // 0xA7 
-    {"XOR B", 0, NULL},        // 0xA8 
-    {"XOR C", 0, NULL},        // 0xA9 
-    {"XOR D", 0, NULL},        // 0xAA 
-    {"XOR E", 0, NULL},        // 0xAB 
-    {"XOR H", 0, NULL},        // 0xAC 
-    {"XOR L", 0, NULL},        // 0xAD 
-    {"XOR (HL)", 0, NULL},     // 0xAE 
-    {"XOR A", 0, NULL},        // 0xAF 
-    {"OR B", 0, NULL},         // 0xB0 
-    {"OR C", 0, NULL},         // 0xB1 
-    {"OR D", 0, NULL},         // 0xB2 
-    {"OR E", 0, NULL},         // 0xB3 
-    {"OR H", 0, NULL},         // 0xB4 
-    {"OR L", 0, NULL},         // 0xB5 
-    {"OR (HL)", 0, NULL},      // 0xB6 
-    {"OR A", 0, NULL},         // 0xB7 
+    {"XOR B", 0, xor_b},        // 0xA8 
+    {"XOR C", 0, xor_c},        // 0xA9 
+    {"XOR D", 0, xor_d},        // 0xAA 
+    {"XOR E", 0, xor_e},        // 0xAB 
+    {"XOR H", 0, xor_h},        // 0xAC 
+    {"XOR L", 0, xor_l},        // 0xAD 
+    {"XOR (HL)", 0, xor_hl},     // 0xAE 
+    {"XOR A", 0, xor_a},        // 0xAF 
+    {"OR B", 0, or_b},         // 0xB0 
+    {"OR C", 0, or_c},         // 0xB1 
+    {"OR D", 0, or_d},         // 0xB2 
+    {"OR E", 0, or_e},         // 0xB3 
+    {"OR H", 0, or_h},         // 0xB4 
+    {"OR L", 0, or_l},         // 0xB5 
+    {"OR (HL)", 0, or_hl},      // 0xB6 
+    {"OR A", 0, or_a},         // 0xB7 
     {"CP B", 0, cp_b},         // 0xB8 
     {"CP C", 0, cp_c},         // 0xB9 
     {"CP D", 0, cp_d},         // 0xBA 
@@ -328,7 +366,7 @@ void set_sub_flags(uint8_t result, uint8_t a, uint8_t b) {
     }
 }
 
-void set_and_flags(uint8_t result) {
+void set_logic_flags(uint8_t result) {
     registers.f |= result == 0 ? FLAGS_ZERO : 0;
     registers.f &= ~FLAGS_NEGATIVE;
     registers.f |= FLAGS_HALFCARRY;
@@ -339,22 +377,10 @@ void nop() {}
 
 void rst_38() {}
 
-void inc_b() { registers.b++; }
-void inc_c() { registers.c++; }
-void inc_d() { registers.d++; }
-void inc_e() { registers.e++; }
-void inc_h() { registers.h++; }
-void inc_l() { registers.l++; }
-void inc_a() { registers.a++; }
+MULTI_MACRO(INC)
 void inc_hl() { write8(registers.hl, read8(registers.hl) - 1); }
 
-void dec_b() { registers.b--; }
-void dec_c() { registers.c--; }
-void dec_d() { registers.d--; }
-void dec_e() { registers.e--; }
-void dec_h() { registers.h--; }
-void dec_l() { registers.l--; }
-void dec_a() { registers.a--; }
+MULTI_MACRO(DEC)
 void dec_hl() { write8(registers.hl, read8(registers.hl) - 1); }
 
 void ld_bc_n16() { registers.bc = m16; }
@@ -513,30 +539,7 @@ void ld_hl_spe() {
     // TODO: IMPLEMENT THIS
 }
 
-void add_a() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_b() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_c() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_f() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_d() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_e() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_h() {
-    registers.a = add8(registers.a, registers.a);
-}
-void add_l() {
-    registers.a = add8(registers.a, registers.a);
-}
+MULTI_MACRO(ADD)
 void add_hl() {
     registers.a = add8(registers.a, read8(registers.hl));
 }
@@ -544,71 +547,17 @@ void add_n() {
     registers.a = add8(registers.a, m8);
 }
 
-void adc_a() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.a, c);
-}
-void adc_b() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.b, c);
-}
-void adc_c() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.c, c);
-}
-void adc_f() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.f, c);
-}
-void adc_d() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.d, c);
-}
-void adc_e() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.e, c);
-}
-void adc_h() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.h, c);
-}
-void adc_l() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, registers.l, c);
-}
+MULTI_MACRO(ADC)
 void adc_hl() {
     uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = adc8(registers.a, read8(registers.hl), c);
+    registers.c = adc8(registers.a, read8(registers.hl), c);
 }
 void adc_n() {
     uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
     registers.a = adc8(registers.a, m8, c);
 }
 
-void sub_a() {
-    registers.a = sub8(registers.a, registers.a);
-}
-void sub_b() {
-    registers.a = sub8(registers.a, registers.b);
-}
-void sub_c() {
-    registers.a = sub8(registers.a, registers.c);
-}
-void sub_d() {
-    registers.a = sub8(registers.a, registers.d);
-}
-void sub_e() {
-    registers.a = sub8(registers.a, registers.e);
-}
-void sub_f() {
-    registers.a = sub8(registers.a, registers.f);
-}
-void sub_h() {
-    registers.a = sub8(registers.a, registers.h);
-}
-void sub_l() {
-    registers.a = sub8(registers.a, registers.l);
-}
+MULTI_MACRO(SUB)
 void sub_hl() {
     registers.a = sub8(registers.a, read8(registers.hl));
 }
@@ -616,38 +565,7 @@ void sub_n() {
     registers.a = sub8(registers.a, m8);
 }
 
-void scb_a() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.a, c);
-}
-void scb_b() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.b, c);
-}
-void scb_c() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.c, c);
-}
-void scb_d() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.d, c);
-}
-void scb_e() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.e, c);
-}
-void scb_f() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.f, c);
-}
-void scb_h() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.h, c);
-}
-void scb_l() {
-    uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
-    registers.a = subc8(registers.a, registers.l, c);
-}
+MULTI_MACRO(SBC)
 void scb_hl() {
     uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
     registers.a = subc8(registers.a, read8(registers.hl), c);
@@ -657,165 +575,42 @@ void scb_n() {
     registers.a = subc8(registers.a, m8, c);
 }
 
-void cp_a() { sub8(registers.a, registers.a); }
-void cp_b() { sub8(registers.a, registers.b); }
-void cp_c() { sub8(registers.a, registers.c); }
-void cp_d() { sub8(registers.a, registers.d); }
-void cp_e() { sub8(registers.a, registers.e); }
-void cp_f() { sub8(registers.a, registers.f); }
-void cp_h() { sub8(registers.a, registers.h); }
-void cp_l() { sub8(registers.a, registers.l); }
+MULTI_MACRO(CP)
 void cp_hl() { sub8(registers.a, read8(registers.hl)); }
 void cp_n() { sub8(registers.a, m8); }
 
-void and_a() {
-    uint8_t result;
-    registers.a &= registers.a;
-    set_and_flags(result);
-}
-void and_b() {
-    uint8_t result;
-    registers.a &= registers.b;
-    set_and_flags(result);
-}
-void and_c() {
-    uint8_t result;
-    registers.a &= registers.c;
-    set_and_flags(result);
-}
-void and_d() {
-    uint8_t result;
-    registers.a &= registers.d;
-    set_and_flags(result);
-}
-void and_e() {
-    uint8_t result;
-    registers.a &= registers.e;
-    set_and_flags(result);
-}
-void and_f() {
-    uint8_t result;
-    registers.a &= registers.f;
-    set_and_flags(result);
-}
-void and_h() {
-    uint8_t result;
-    registers.a &= registers.h;
-    set_and_flags(result);
-}
-void and_l() {
-    uint8_t result;
-    registers.a &= registers.l;
-    set_and_flags(result);
-}
+MULTI_MACRO(AND)
 void and_hl() {
     uint8_t result;
     registers.a &= read8(registers.hl);
-    set_and_flags(result);
+    set_logic_flags(result);
 }
 void and_n() {
     uint8_t result;
     registers.a &= m8;
-    set_and_flags(result);
-}
-id and_a() {
-    uint8_t result;
-    registers.a &= registers.a;
-    set_and_flags(result);
-}
-void and_b() {
-    uint8_t result;
-    registers.a &= registers.b;
-    set_and_flags(result);
-}
-void and_c() {
-    uint8_t result;
-    registers.a &= registers.c;
-    set_and_flags(result);
-}
-void and_d() {
-    uint8_t result;
-    registers.a &= registers.d;
-    set_and_flags(result);
-}
-void and_e() {
-    uint8_t result;
-    registers.a &= registers.e;
-    set_and_flags(result);
-}
-void and_f() {
-    uint8_t result;
-    registers.a &= registers.f;
-    set_and_flags(result);
-}
-void and_h() {
-    uint8_t result;
-    registers.a &= registers.h;
-    set_and_flags(result);
-}
-void and_l() {
-    uint8_t result;
-    registers.a &= registers.l;
-    set_and_flags(result);
-}
-void and_hl() {
-    uint8_t result;
-    registers.a &= read8(registers.hl);
-    set_and_flags(result);
-}
-void and_n() {
-    uint8_t result;
-    registers.a &= m8;
-    set_and_flags(result);
-}
-id and_a() {
-    uint8_t result;
-    registers.a &= registers.a;
-    set_and_flags(result);
-}
-void and_b() {
-    uint8_t result;
-    registers.a &= registers.b;
-    set_and_flags(result);
-}
-void and_c() {
-    uint8_t result;
-    registers.a &= registers.c;
-    set_and_flags(result);
-}
-void and_d() {
-    uint8_t result;
-    registers.a &= registers.d;
-    set_and_flags(result);
-}
-void and_e() {
-    uint8_t result;
-    registers.a &= registers.e;
-    set_and_flags(result);
-}
-void and_f() {
-    uint8_t result;
-    registers.a &= registers.f;
-    set_and_flags(result);
-}
-void and_h() {
-    uint8_t result;
-    registers.a &= registers.h;
-    set_and_flags(result);
-}
-void and_l() {
-    uint8_t result;
-    registers.a &= registers.l;
-    set_and_flags(result);
-}
-void and_hl() {
-    uint8_t result;
-    registers.a &= read8(registers.hl);
-    set_and_flags(result);
-}
-void and_n() {
-    uint8_t result;
-    registers.a &= m8;
-    set_and_flags(result);
+    set_logic_flags(result);
 }
 
+MULTI_MACRO(OR)
+void or_hl() {
+    uint8_t result;
+    result = registers.a | read8(registers.hl);
+    set_logic_flags(result);
+}
+void or_n() {
+    uint8_t result;
+    result = registers.a | m8;
+    set_logic_flags(result);
+}
+
+MULTI_MACRO(XOR)
+void xor_hl() {
+    uint8_t result;
+    result = registers.a ^ read8(registers.hl);
+    set_logic_flags(result);
+}
+void xor_n() {
+    uint8_t result;
+    result = registers.a ^ m8;
+    set_logic_flags(result);
+}

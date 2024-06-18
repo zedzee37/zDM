@@ -69,6 +69,7 @@ extern uint8_t sub8(uint8_t a, uint8_t b);
 extern uint8_t subc8(uint8_t a, uint8_t b, uint8_t c);
 extern void set_add_flags(uint8_t result, uint8_t a, uint8_t b);
 extern void set_sub_flags(uint8_t result, uint8_t a, uint8_t b);
+extern void set_logic_flags(uint8_t result);
 
 void nop();
 void rst_38();
@@ -278,3 +279,24 @@ void and_l();
 void and_hl();
 void and_n();
 
+void or_a();
+void or_b();
+void or_c();
+void or_d();
+void or_e();
+void or_f();
+void or_h();
+void or_l();
+void or_hl();
+void or_n();
+
+void xor_a();
+void xor_b();
+void xor_c();
+void xor_d();
+void xor_e();
+void xor_f();
+void xor_h();
+void xor_l();
+void xor_hl();
+void xor_n();
