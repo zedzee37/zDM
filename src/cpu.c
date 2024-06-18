@@ -84,7 +84,7 @@ struct instruction instructions[256] = {
     {"INC H", 0, inc_h},        // 0x24 
     {"DEC H", 0, dec_h},        // 0x25 
     {"LD H d8", 1, NULL},      // 0x26 
-    {"DAA", 0, NULL},          // 0x27 
+    {"DAA", 0, daa},          // 0x27 
     {"JR Z r8", 1, NULL},      // 0x28 
     {"ADD HL HL", 0, NULL},    // 0x29 
     {"LD A (HL+)", 0, ld_a_hli},   // 0x2A 
@@ -92,7 +92,7 @@ struct instruction instructions[256] = {
     {"INC L", 0, inc_l},        // 0x2C 
     {"DEC L", 0, dec_l},        // 0x2D 
     {"LD L d8", 1, ld_l_n8},      // 0x2E 
-    {"CPL", 0, NULL},          // 0x2F 
+    {"CPL", 0, cpl},          // 0x2F 
     {"JR NC r8", 1, NULL},     // 0x30 
     {"LD SP d16", 2, ld_sp_n16},    // 0x31 
     {"LD (HL-) A", 0, ld_hld_a},   // 0x32 
@@ -100,7 +100,7 @@ struct instruction instructions[256] = {
     {"INC (HL)", 0, NULL},     // 0x34 
     {"DEC (HL)", 0, NULL},     // 0x35 
     {"LD (HL) d8", 1, NULL},   // 0x36 
-    {"SCF", 0, NULL},          // 0x37 
+    {"SCF", 0, scf},          // 0x37 
     {"JR C r8", 1, NULL},      // 0x38 
     {"ADD HL SP", 0, NULL},    // 0x39 
     {"LD A (HL-)", 0, ld_a_hld},   // 0x3A 
@@ -108,7 +108,7 @@ struct instruction instructions[256] = {
     {"INC A", 0, inc_a},        // 0x3C 
     {"DEC A", 0, dec_a},        // 0x3D 
     {"LD A d8", 1, ld_a_n8},      // 0x3E 
-    {"CCF", 0, NULL},          // 0x3F 
+    {"CCF", 0, ccf},          // 0x3F 
     {"LD B B", 0, ld_b_b},       // 0x40 
     {"LD B C", 0, ld_b_c},       // 0x41 
     {"LD B D", 0, ld_b_d},       // 0x42 
@@ -614,3 +614,23 @@ void xor_n() {
     result = registers.a ^ m8;
     set_logic_flags(result);
 }
+
+void ccf() {
+    registers.f &= ~FLAGS_ZERO;
+    registers.f &= ~FLAGS_HALFCARRY;
+    registers.f ^= FLAGS_CARRY;
+}
+void scf() {
+    registers.f &= ~FLAGS_ZERO;
+    registers.f &= ~FLAGS_HALFCARRY;
+    registers.f |= FLAGS_CARRY;
+}
+void daa() {
+    // TODO: DO THIS
+}
+void cpl() {
+    registers.a = ~registers.a;
+    registers.f |= FLAGS_NEGATIVE;
+    registers.f |= FLAGS_HALFCARRY;
+}
+

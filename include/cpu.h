@@ -300,3 +300,8 @@ void xor_h();
 void xor_l();
 void xor_hl();
 void xor_n();
+
+void ccf();
+void scf();
+void daa();
+void cpl();
