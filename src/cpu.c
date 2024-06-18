@@ -10,7 +10,7 @@ struct instruction instructions[256] = {
     {"NOP", 0, nop},           // 0x00 
     {"LD BC d16", 2, ld_bc_nn},    // 0x01 
     {"LD (BC) A", 0, ld_bcm_a},    // 0x02 
-    {"INC BC", 0, inc_bc},       // 0x03 
+    {"INC BC", 0, NULL},       // 0x03 
     {"INC B", 0, inc_b},        // 0x04 
     {"DEC B", 0, dec_b},        // 0x05 
     {"LD B d8", 1, ld_b_n8},      // 0x06 
@@ -18,7 +18,7 @@ struct instruction instructions[256] = {
     {"LD (a16) SP", 2, ld_nn_sp},  // 0x08 
     {"ADD HL BC", 0, NULL},    // 0x09 
     {"LD A (BC)", 0, ld_a_bcm},    // 0x0A 
-    {"DEC BC", 0, dec_bc},       // 0x0B 
+    {"DEC BC", 0, NULL},       // 0x0B 
     {"INC C", 0, inc_c},        // 0x0C 
     {"DEC C", 0, dec_c},        // 0x0D 
     {"LD C d8", 1, ld_c_n8},      // 0x0E 
@@ -26,7 +26,7 @@ struct instruction instructions[256] = {
     {"STOP 0", 0, NULL},       // 0x10 
     {"LD DE d16", 2, ld_de_nn},    // 0x11 
     {"LD (DE) A", 0, ld_dem_a},    // 0x12 
-    {"INC DE", 0, inc_de},       // 0x13 
+    {"INC DE", 0, NULL},       // 0x13 
     {"INC D", 0, inc_d},        // 0x14 
     {"DEC D", 0, dec_d},        // 0x15 
     {"LD D d8", 1, ld_d_n8},      // 0x16 
@@ -34,7 +34,7 @@ struct instruction instructions[256] = {
     {"JR r8", 1, NULL},        // 0x18 
     {"ADD HL DE", 0, NULL},    // 0x19 
     {"LD A (DE)", 0, ld_a_dem},    // 0x1A 
-    {"DEC DE", 0, dec_de},       // 0x1B 
+    {"DEC DE", 0, NULL},       // 0x1B 
     {"INC E", 0, inc_e},        // 0x1C 
     {"DEC E", 0, dec_e},        // 0x1D 
     {"LD E d8", 1, ld_e_n8},      // 0x1E 
@@ -58,7 +58,7 @@ struct instruction instructions[256] = {
     {"JR NC r8", 1, NULL},     // 0x30 
     {"LD SP d16", 2, ld_sp_n16},    // 0x31 
     {"LD (HL-) A", 0, ld_hld_a},   // 0x32 
-    {"INC SP", 0, inc_sp},       // 0x33 
+    {"INC SP", 0, NULL},       // 0x33 
     {"INC (HL)", 0, NULL},     // 0x34 
     {"DEC (HL)", 0, NULL},     // 0x35 
     {"LD (HL) d8", 1, NULL},   // 0x36 
@@ -66,7 +66,7 @@ struct instruction instructions[256] = {
     {"JR C r8", 1, NULL},      // 0x38 
     {"ADD HL SP", 0, NULL},    // 0x39 
     {"LD A (HL-)", 0, ld_a_hld},   // 0x3A 
-    {"DEC SP", 0, dec_sp},       // 0x3B 
+    {"DEC SP", 0, NULL},       // 0x3B 
     {"INC A", 0, inc_a},        // 0x3C 
     {"DEC A", 0, dec_a},        // 0x3D 
     {"LD A d8", 1, ld_a_n8},      // 0x3E 
@@ -167,14 +167,14 @@ struct instruction instructions[256] = {
     {"SBC A L", 0, scb_l},      // 0x9D 
     {"SBC A (HL)", 0, scb_hl},   // 0x9E 
     {"SBC A A", 0, scb_a},      // 0x9F 
-    {"AND B", 0, NULL},        // 0xA0 
-    {"AND C", 0, NULL},        // 0xA1 
-    {"AND D", 0, NULL},        // 0xA2 
-    {"AND E", 0, NULL},        // 0xA3 
-    {"AND H", 0, NULL},        // 0xA4 
-    {"AND L", 0, NULL},        // 0xA5 
-    {"AND (HL)", 0, NULL},     // 0xA6 
-    {"AND A", 0, NULL},        // 0xA7 
+    {"AND B", 0, and_b},        // 0xA0 
+    {"AND C", 0, and_c},        // 0xA1 
+    {"AND D", 0, and_d},        // 0xA2 
+    {"AND E", 0, and_e},        // 0xA3 
+    {"AND H", 0, and_h},        // 0xA4 
+    {"AND L", 0, and_l},        // 0xA5 
+    {"AND (HL)", 0, and_hl},     // 0xA6 
+    {"AND A", 0, and_a},        // 0xA7 
     {"XOR B", 0, NULL},        // 0xA8 
     {"XOR C", 0, NULL},        // 0xA9 
     {"XOR D", 0, NULL},        // 0xAA 
@@ -191,14 +191,14 @@ struct instruction instructions[256] = {
     {"OR L", 0, NULL},         // 0xB5 
     {"OR (HL)", 0, NULL},      // 0xB6 
     {"OR A", 0, NULL},         // 0xB7 
-    {"CP B", 0, NULL},         // 0xB8 
-    {"CP C", 0, NULL},         // 0xB9 
-    {"CP D", 0, NULL},         // 0xBA 
-    {"CP E", 0, NULL},         // 0xBB 
-    {"CP H", 0, NULL},         // 0xBC 
-    {"CP L", 0, NULL},         // 0xBD 
-    {"CP (HL)", 0, NULL},      // 0xBE 
-    {"CP A", 0, NULL},         // 0xBF 
+    {"CP B", 0, cp_b},         // 0xB8 
+    {"CP C", 0, cp_c},         // 0xB9 
+    {"CP D", 0, cp_d},         // 0xBA 
+    {"CP E", 0, cp_e},         // 0xBB 
+    {"CP H", 0, cp_h},         // 0xBC 
+    {"CP L", 0, cp_l},         // 0xBD 
+    {"CP (HL)", 0, cp_hl},      // 0xBE 
+    {"CP A", 0, cp_a},         // 0xBF 
     {"RET NZ", 0, NULL},       // 0xC0 
     {"POP BC", 0, pop_bc},       // 0xC1 
     {"JP NZ a16", 2, NULL},    // 0xC2 
@@ -232,7 +232,7 @@ struct instruction instructions[256] = {
     {"POP HL", 0, pop_hl},       // 0xE1 
     {"LD (C) A", 0, ldh_c_a},     // 0xE2 
     {"PUSH HL", 0, push_hl},      // 0xE5 
-    {"AND d8", 1, NULL},       // 0xE6 
+    {"AND d8", 1, and_n},       // 0xE6 
     {"RST 20H", 0, NULL},      // 0xE7 
     {"ADD SP r8", 1, NULL},    // 0xE8 
     {"JP (HL)", 0, NULL},      // 0xE9 
@@ -250,7 +250,7 @@ struct instruction instructions[256] = {
     {"LD SP HL", 0, NULL},     // 0xF9 
     {"LD A (a16)", 2, ld_a_nn},   // 0xFA 
     {"EI", 0, NULL},           // 0xFB 
-    {"CP d8", 1, NULL},        // 0xFE 
+    {"CP d8", 1, cp_n},        // 0xFE 
     {"RST 38H", 0, NULL},      // 0xFF 
 };
 
@@ -306,7 +306,7 @@ void set_add_flags(uint8_t result, uint8_t a, uint8_t b) {
     if (result == 0) {
         registers.f |= FLAGS_ZERO;
     }
-    registers.f ^= FLAGS_NEGATIVE;
+    registers.f &= ~FLAGS_NEGATIVE;
     if ((((a & 0x0F) + (b & 0x0F)) & 0x10) > 0) {
         registers.f |= FLAGS_HALFCARRY;
     }
@@ -319,7 +319,7 @@ void set_sub_flags(uint8_t result, uint8_t a, uint8_t b) {
     if (result == 0) {
         registers.f |= FLAGS_ZERO;
     }
-    registers.f ^= FLAGS_NEGATIVE;
+    registers.f &= ~FLAGS_NEGATIVE;
     if ((((a & 0x0F) - (b & 0x0F)) & 0x10) > 0) {
         registers.f |= FLAGS_HALFCARRY;
     }
@@ -328,33 +328,34 @@ void set_sub_flags(uint8_t result, uint8_t a, uint8_t b) {
     }
 }
 
+void set_and_flags(uint8_t result) {
+    registers.f |= result == 0 ? FLAGS_ZERO : 0;
+    registers.f &= ~FLAGS_NEGATIVE;
+    registers.f |= FLAGS_HALFCARRY;
+    registers.f &= ~FLAGS_CARRY;
+}
+
 void nop() {}
 
 void rst_38() {}
 
-void inc_bc() { registers.bc++; }
 void inc_b() { registers.b++; }
 void inc_c() { registers.c++; }
-void inc_de() { registers.de++; }
 void inc_d() { registers.d++; }
 void inc_e() { registers.e++; }
 void inc_h() { registers.h++; }
 void inc_l() { registers.l++; }
-void inc_sp() { registers.sp++; }
 void inc_a() { registers.a++; }
-void inc_hl() { registers.hl++; }
+void inc_hl() { write8(registers.hl, read8(registers.hl) - 1); }
 
 void dec_b() { registers.b--; }
-void dec_bc() { registers.bc--; }
 void dec_c() { registers.c--; }
 void dec_d() { registers.d--; }
-void dec_de() { registers.de--; }
 void dec_e() { registers.e--; }
 void dec_h() { registers.h--; }
-void dec_hl() { registers.hl--; }
 void dec_l() { registers.l--; }
-void dec_sp() { registers.sp--; }
 void dec_a() { registers.a--; }
+void dec_hl() { write8(registers.hl, read8(registers.hl) - 1); }
 
 void ld_bc_n16() { registers.bc = m16; }
 void ld_b_n8() { registers.b = m8; }
@@ -655,3 +656,166 @@ void scb_n() {
     uint8_t c = (registers.f & FLAGS_CARRY) == FLAGS_CARRY;
     registers.a = subc8(registers.a, m8, c);
 }
+
+void cp_a() { sub8(registers.a, registers.a); }
+void cp_b() { sub8(registers.a, registers.b); }
+void cp_c() { sub8(registers.a, registers.c); }
+void cp_d() { sub8(registers.a, registers.d); }
+void cp_e() { sub8(registers.a, registers.e); }
+void cp_f() { sub8(registers.a, registers.f); }
+void cp_h() { sub8(registers.a, registers.h); }
+void cp_l() { sub8(registers.a, registers.l); }
+void cp_hl() { sub8(registers.a, read8(registers.hl)); }
+void cp_n() { sub8(registers.a, m8); }
+
+void and_a() {
+    uint8_t result;
+    registers.a &= registers.a;
+    set_and_flags(result);
+}
+void and_b() {
+    uint8_t result;
+    registers.a &= registers.b;
+    set_and_flags(result);
+}
+void and_c() {
+    uint8_t result;
+    registers.a &= registers.c;
+    set_and_flags(result);
+}
+void and_d() {
+    uint8_t result;
+    registers.a &= registers.d;
+    set_and_flags(result);
+}
+void and_e() {
+    uint8_t result;
+    registers.a &= registers.e;
+    set_and_flags(result);
+}
+void and_f() {
+    uint8_t result;
+    registers.a &= registers.f;
+    set_and_flags(result);
+}
+void and_h() {
+    uint8_t result;
+    registers.a &= registers.h;
+    set_and_flags(result);
+}
+void and_l() {
+    uint8_t result;
+    registers.a &= registers.l;
+    set_and_flags(result);
+}
+void and_hl() {
+    uint8_t result;
+    registers.a &= read8(registers.hl);
+    set_and_flags(result);
+}
+void and_n() {
+    uint8_t result;
+    registers.a &= m8;
+    set_and_flags(result);
+}
+id and_a() {
+    uint8_t result;
+    registers.a &= registers.a;
+    set_and_flags(result);
+}
+void and_b() {
+    uint8_t result;
+    registers.a &= registers.b;
+    set_and_flags(result);
+}
+void and_c() {
+    uint8_t result;
+    registers.a &= registers.c;
+    set_and_flags(result);
+}
+void and_d() {
+    uint8_t result;
+    registers.a &= registers.d;
+    set_and_flags(result);
+}
+void and_e() {
+    uint8_t result;
+    registers.a &= registers.e;
+    set_and_flags(result);
+}
+void and_f() {
+    uint8_t result;
+    registers.a &= registers.f;
+    set_and_flags(result);
+}
+void and_h() {
+    uint8_t result;
+    registers.a &= registers.h;
+    set_and_flags(result);
+}
+void and_l() {
+    uint8_t result;
+    registers.a &= registers.l;
+    set_and_flags(result);
+}
+void and_hl() {
+    uint8_t result;
+    registers.a &= read8(registers.hl);
+    set_and_flags(result);
+}
+void and_n() {
+    uint8_t result;
+    registers.a &= m8;
+    set_and_flags(result);
+}
+id and_a() {
+    uint8_t result;
+    registers.a &= registers.a;
+    set_and_flags(result);
+}
+void and_b() {
+    uint8_t result;
+    registers.a &= registers.b;
+    set_and_flags(result);
+}
+void and_c() {
+    uint8_t result;
+    registers.a &= registers.c;
+    set_and_flags(result);
+}
+void and_d() {
+    uint8_t result;
+    registers.a &= registers.d;
+    set_and_flags(result);
+}
+void and_e() {
+    uint8_t result;
+    registers.a &= registers.e;
+    set_and_flags(result);
+}
+void and_f() {
+    uint8_t result;
+    registers.a &= registers.f;
+    set_and_flags(result);
+}
+void and_h() {
+    uint8_t result;
+    registers.a &= registers.h;
+    set_and_flags(result);
+}
+void and_l() {
+    uint8_t result;
+    registers.a &= registers.l;
+    set_and_flags(result);
+}
+void and_hl() {
+    uint8_t result;
+    registers.a &= read8(registers.hl);
+    set_and_flags(result);
+}
+void and_n() {
+    uint8_t result;
+    registers.a &= m8;
+    set_and_flags(result);
+}
+

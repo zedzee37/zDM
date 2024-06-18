@@ -73,29 +73,23 @@ extern void set_sub_flags(uint8_t result, uint8_t a, uint8_t b);
 void nop();
 void rst_38();
 
-void inc_bc();
 void inc_b();
 void inc_c();
-void inc_de(); 
 void inc_d(); 
 void inc_e(); 
-void inc_hl(); 
 void inc_h(); 
 void inc_l(); 
-void inc_sp(); 
 void inc_a(); 
+void inc_hl();
 
 void dec_b();
-void dec_bc();
 void dec_c();
 void dec_d();
-void dec_de();
 void dec_e();
 void dec_h();
-void dec_hl();
 void dec_l();
-void dec_sp();
 void dec_a();
+void dec_hl();
 
 void ld_bc_n16();
 void ld_b_n8();
@@ -261,3 +255,26 @@ void scb_h();
 void scb_l();
 void scb_hl();
 void scb_n();
+
+void cp_a();
+void cp_b();
+void cp_c();
+void cp_d();
+void cp_e();
+void cp_f();
+void cp_h();
+void cp_l();
+void cp_hl();
+void cp_n();
+
+void and_a();
+void and_b();
+void and_c();
+void and_d();
+void and_e();
+void and_f();
+void and_h();
+void and_l();
+void and_hl();
+void and_n();
+
