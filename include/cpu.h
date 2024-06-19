@@ -62,7 +62,6 @@ extern struct registers registers;
 extern struct instruction instructions[256];
 
 extern bool execute();
-// MSB = sum LSB = carry
 extern uint8_t add8(uint8_t a, uint8_t b);
 extern uint8_t adc8(uint8_t a, uint8_t b, uint8_t c);
 extern uint8_t sub8(uint8_t a, uint8_t b);
@@ -70,6 +69,7 @@ extern uint8_t subc8(uint8_t a, uint8_t b, uint8_t c);
 extern void set_add_flags(uint8_t result, uint8_t a, uint8_t b);
 extern void set_sub_flags(uint8_t result, uint8_t a, uint8_t b);
 extern void set_logic_flags(uint8_t result);
+extern void set_add16_flags(uint16_t result, uint16_t a, uint16_t b);
 
 void nop();
 void rst_38();
@@ -81,7 +81,14 @@ void inc_e();
 void inc_h(); 
 void inc_l(); 
 void inc_a(); 
+
+void inc_af();
+void inc_bc();
+void inc_de();
 void inc_hl();
+void inc_sp();
+
+void inc_hlm();
 
 void dec_b();
 void dec_c();
@@ -90,7 +97,14 @@ void dec_e();
 void dec_h();
 void dec_l();
 void dec_a();
+
+void dec_af();
+void dec_bc();
+void dec_de();
 void dec_hl();
+void dec_sp();
+
+void dec_hlm();
 
 void ld_bc_n16();
 void ld_b_n8();
@@ -221,7 +235,7 @@ void add_d();
 void add_e();
 void add_h();
 void add_l();
-void add_hl();
+void add_hlm();
 void add_n();
 
 void adc_a();
@@ -305,3 +319,10 @@ void ccf();
 void scf();
 void daa();
 void cpl();
+
+void add_hl();
+void add_sp();
+void add_bc();
+void add_de();
+void add_af();
+void add_sp_n();
