@@ -367,3 +367,9 @@ void rst_20();
 void rst_28();
 void rst_30();
 void rst_38();
+
+void halt();
+void stop();
+void di();
+void ei();
+

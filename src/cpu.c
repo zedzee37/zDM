@@ -63,7 +63,7 @@ struct instruction instructions[256] = {
     {"DEC C", 0, dec_c},           // 0x0D
     {"LD C d8", 1, ld_c_n8},       // 0x0E
     {"RRCA", 0, rrca},             // 0x0F
-    {"STOP 0", 0, NULL},           // 0x10
+    {"STOP 0", 0, stop},           // 0x10
     {"LD DE d16", 2, ld_de_nn},    // 0x11
     {"LD (DE) A", 0, ld_dem_a},    // 0x12
     {"INC DE", 0, inc_de},         // 0x13
@@ -85,7 +85,7 @@ struct instruction instructions[256] = {
     {"INC HL", 0, inc_hl},         // 0x23
     {"INC H", 0, inc_h},           // 0x24
     {"DEC H", 0, dec_h},           // 0x25
-    {"LD H d8", 1, NULL},          // 0x26
+    {"LD H d8", 1, ld_h_n8},          // 0x26
     {"DAA", 0, daa},               // 0x27
     {"JR Z r8", 1, jr_z_e},          // 0x28
     {"ADD HL HL", 0, add_hl},        // 0x29
@@ -101,7 +101,7 @@ struct instruction instructions[256] = {
     {"INC SP", 0, inc_sp},         // 0x33
     {"INC (HL)", 0, inc_hlm},      // 0x34
     {"DEC (HL)", 0, dec_hlm},      // 0x35
-    {"LD (HL) d8", 1, NULL},       // 0x36
+    {"LD (HL) d8", 1, ld_hl_n8},       // 0x36
     {"SCF", 0, scf},               // 0x37
     {"JR C r8", 1, jr_c_e},          // 0x38
     {"ADD HL SP", 0, add_sp},        // 0x39
@@ -165,7 +165,7 @@ struct instruction instructions[256] = {
     {"LD (HL) E", 0, ld_hl_e},     // 0x73
     {"LD (HL) H", 0, ld_hl_h},     // 0x74
     {"LD (HL) L", 0, ld_hl_l},     // 0x75
-    {"HALT", 0, NULL},             // 0x76
+    {"HALT", 0, halt},             // 0x76
     {"LD (HL) A", 0, ld_hl_a},     // 0x77
     {"LD A B", 0, ld_a_b},         // 0x78
     {"LD A C", 0, ld_a_c},         // 0x79
@@ -282,14 +282,14 @@ struct instruction instructions[256] = {
     {"LDH A (a8)", 1, ldh_a_n},    // 0xF0
     {"POP AF", 0, pop_af},         // 0xF1
     {"LD A (C)", 0, ldh_a_c},      // 0xF2
-    {"DI", 0, NULL},               // 0xF3
+    {"DI", 0, di},               // 0xF3
     {"PUSH AF", 0, push_af},       // 0xF5
     {"OR d8", 1, or_n},            // 0xF6
     {"RST 30H", 0, rst_30},          // 0xF7
     {"LD HL SP+r8", 1, ld_hl_spe}, // 0xF8
     {"LD SP HL", 0, ld_sp_hl},         // 0xF9
     {"LD A (a16)", 2, ld_a_nn},    // 0xFA
-    {"EI", 0, NULL},               // 0xFB
+    {"EI", 0, ei},               // 0xFB
     {"CP d8", 1, cp_n},            // 0xFE
     {"RST 38H", 0, rst_38},          // 0xFF
 };
@@ -1011,3 +1011,18 @@ void rst_38() {
     write8(registers.sp, lsb(pc));
     pc = u16(n, 0x00);
 }
+
+void halt() {
+    // TODO: IME = 0
+}
+void stop() {
+    // TODO: IME = 0
+}
+void di() {
+    // TODO: IME = 0
+}
+void ei() {
+    // TODO IME_NEXT = 1
+}
+
+
