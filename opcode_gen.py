@@ -7,7 +7,7 @@ import json
 # };
 #
 
-OPCODE_LIST = "opcodes.json"
+OPCODE_LIST = "opcodes2.json"
 OUTPUT = "./t.h"
 
 with open(OPCODE_LIST, "r") as f:
@@ -15,7 +15,7 @@ with open(OPCODE_LIST, "r") as f:
 
 with open(OUTPUT, "w") as w:
     unprefixed = data["unprefixed"]
-   
+
     _ = w.write("struct instruction instructions[256] = {\n")
 
     for op in unprefixed:
@@ -32,4 +32,5 @@ with open(OUTPUT, "w") as w:
         opn = op[0:2] + op[2:len(op) + 1].upper()
         _ = w.write("   {" + s + "}," + spaces + "// " + opn + " \n")
     _ = w.write("}")
+
 

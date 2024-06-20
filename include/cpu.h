@@ -59,7 +59,7 @@ struct instruction {
 };
 
 extern struct registers registers;
-extern struct instruction instructions[256];
+extern const struct instruction instructions[256];
 
 extern bool execute();
 extern uint8_t add8(uint8_t a, uint8_t b);
@@ -261,16 +261,16 @@ void sub_l();
 void sub_hl();
 void sub_n();
 
-void scb_a();
-void scb_b();
-void scb_c();
-void scb_d();
-void scb_e();
-void scb_f();
-void scb_h();
-void scb_l();
-void scb_hl();
-void scb_n();
+void sbc_a();
+void sbc_b();
+void sbc_c();
+void sbc_d();
+void sbc_e();
+void sbc_f();
+void sbc_h();
+void sbc_l();
+void sbc_hl();
+void sbc_n();
 
 void cp_a();
 void cp_b();
