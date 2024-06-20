@@ -326,3 +326,8 @@ void add_bc();
 void add_de();
 void add_af();
 void add_sp_n();
+
+void rlca();
+void rrca();
+void rla();
+void rra();

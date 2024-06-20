@@ -54,7 +54,7 @@ struct instruction instructions[256] = {
     {"INC B", 0, inc_b},           // 0x04
     {"DEC B", 0, dec_b},           // 0x05
     {"LD B d8", 1, ld_b_n8},       // 0x06
-    {"RLCA", 0, NULL},             // 0x07
+    {"RLCA", 0, rlca},             // 0x07
     {"LD (a16) SP", 2, ld_nn_sp},  // 0x08
     {"ADD HL BC", 0, add_bc},        // 0x09
     {"LD A (BC)", 0, ld_a_bcm},    // 0x0A
@@ -62,7 +62,7 @@ struct instruction instructions[256] = {
     {"INC C", 0, inc_c},           // 0x0C
     {"DEC C", 0, dec_c},           // 0x0D
     {"LD C d8", 1, ld_c_n8},       // 0x0E
-    {"RRCA", 0, NULL},             // 0x0F
+    {"RRCA", 0, rrca},             // 0x0F
     {"STOP 0", 0, NULL},           // 0x10
     {"LD DE d16", 2, ld_de_nn},    // 0x11
     {"LD (DE) A", 0, ld_dem_a},    // 0x12
@@ -70,7 +70,7 @@ struct instruction instructions[256] = {
     {"INC D", 0, inc_d},           // 0x14
     {"DEC D", 0, dec_d},           // 0x15
     {"LD D d8", 1, ld_d_n8},       // 0x16
-    {"RLA", 0, NULL},              // 0x17
+    {"RLA", 0, rla},              // 0x17
     {"JR r8", 1, NULL},            // 0x18
     {"ADD HL DE", 0, add_de},        // 0x19
     {"LD A (DE)", 0, ld_a_dem},    // 0x1A
@@ -78,7 +78,7 @@ struct instruction instructions[256] = {
     {"INC E", 0, inc_e},           // 0x1C
     {"DEC E", 0, dec_e},           // 0x1D
     {"LD E d8", 1, ld_e_n8},       // 0x1E
-    {"RRA", 0, NULL},              // 0x1F
+    {"RRA", 0, rra},              // 0x1F
     {"JR NZ r8", 1, NULL},         // 0x20
     {"LD HL d16", 2, ld_hl_nn},    // 0x21
     {"LD (HL+) A", 0, ld_hli_a},   // 0x22
@@ -277,14 +277,14 @@ struct instruction instructions[256] = {
     {"ADD SP r8", 1, add_sp_n},        // 0xE8
     {"JP (HL)", 0, NULL},          // 0xE9
     {"LD (a16) A", 2, ld_nn_a},    // 0xEA
-    {"XOR d8", 1, NULL},           // 0xEE
+    {"XOR d8", 1, xor_n},           // 0xEE
     {"RST 28H", 0, NULL},          // 0xEF
     {"LDH A (a8)", 1, ldh_a_n},    // 0xF0
     {"POP AF", 0, pop_af},         // 0xF1
     {"LD A (C)", 0, ldh_a_c},      // 0xF2
     {"DI", 0, NULL},               // 0xF3
     {"PUSH AF", 0, push_af},       // 0xF5
-    {"OR d8", 1, NULL},            // 0xF6
+    {"OR d8", 1, or_n},            // 0xF6
     {"RST 30H", 0, NULL},          // 0xF7
     {"LD HL SP+r8", 1, ld_hl_spe}, // 0xF8
     {"LD SP HL", 0, NULL},         // 0xF9
@@ -561,7 +561,25 @@ void pop_hl() {
 }
 
 void ld_hl_spe() {
-    // TODO: IMPLEMENT THIS
+    uint16_t result;
+    const uint16_t a = registers.sp;
+    const int8_t b = m8;
+    result = a + b; 
+    registers.hl = result;
+
+    if (result & 0xFFFF0000) {
+        registers.f |= FLAGS_CARRY;
+    } else {
+        registers.f &= ~FLAGS_CARRY;
+    }
+
+    if (((a & 0x0F) + (b & 0x0F)) > 0x0F) {
+        registers.f |= FLAGS_HALFCARRY;
+    } else {
+        registers.f &= ~FLAGS_HALFCARRY;
+    }
+
+    registers.f &= ~(FLAGS_ZERO | FLAGS_NEGATIVE);
 }
 
 MULTI_MACRO(ADD)
@@ -643,7 +661,31 @@ void scf() {
     registers.f |= FLAGS_CARRY;
 }
 void daa() {
-    // TODO: DO THIS
+    unsigned short s = registers.a;
+    const bool is_halfcarry = (registers.f & FLAGS_HALFCARRY) != 0;
+    const bool is_carry = (registers.f & FLAGS_CARRY) != 0;
+    const bool is_negative = (registers.f & FLAGS_NEGATIVE) != 0;
+
+    if (is_negative) {
+        if (is_halfcarry) s = (s - 0x06) & 0x0FF;
+        if (is_carry) s -= 0x60;
+    } else {
+        if (is_halfcarry || (s & 0xF) > 9) s += 0x06;
+        if (is_carry || s > 0x9F) s += 0x60;
+    }
+
+    registers.a = s;
+    registers.f &= ~FLAGS_HALFCARRY;
+
+    if (registers.a) {
+        registers.f &= ~FLAGS_ZERO;
+    } else {
+        registers.f |= FLAGS_ZERO;
+    }
+
+    if (s >= 0x100) {
+        registers.f |= FLAGS_CARRY;
+    }
 }
 void cpl() {
     registers.a = ~registers.a;
@@ -700,7 +742,7 @@ void add_sp_n() {
     result = registers.sp + b;
     registers.f &= ~FLAGS_ZERO;
     registers.f &= ~FLAGS_NEGATIVE;
-    
+
     if ((((a & 0x0F) + (b & 0x0F)) & 0x10) > 0) {
         registers.f |= FLAGS_HALFCARRY;
     }
@@ -708,3 +750,66 @@ void add_sp_n() {
         registers.f |= FLAGS_CARRY;
     }
 }
+
+void rlca() {
+    uint8_t l = (registers.a & 0x80) >> 7;
+    if (l) {
+        registers.f |= FLAGS_CARRY;
+    } else {
+        registers.f &= ~FLAGS_CARRY;
+    }
+
+    registers.a <<= 1;
+    registers.a += l;
+
+    registers.f &= ~(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+}
+
+void rrca() {
+    uint8_t l = registers.a & 0x01;
+    if (l) {
+        registers.f |= FLAGS_CARRY;
+    } else {
+        registers.f &= ~FLAGS_CARRY;
+    }
+
+    registers.a >>= 1;
+    if (l) {
+        registers.a |= 0x80;
+    }
+
+    registers.f &= ~(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+}
+
+void rla() {
+    int carry = (registers.f & FLAGS_CARRY) ? 1 : 0;
+
+    if (registers.a & 0x80) {
+        registers.f |= FLAGS_CARRY;
+    } else {
+        registers.f &= ~FLAGS_CARRY;
+    }
+
+    registers.a <<= 1;
+    registers.a += carry;
+
+    registers.f &= ~(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+}
+
+void rra() {
+    int carry = (registers.f & FLAGS_CARRY) ? 1 : 0;
+    carry <<= 7;
+
+    if (registers.a & 0x01) {
+        registers.f |= FLAGS_CARRY;
+    } else {
+        registers.f &= ~FLAGS_CARRY;
+    }
+
+    registers.a >>= 1;
+    registers.a += carry;
+
+    registers.f &= ~(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+}
+
+
