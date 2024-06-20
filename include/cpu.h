@@ -331,3 +331,16 @@ void rlca();
 void rrca();
 void rla();
 void rra();
+
+void jp_nn();
+void jp_hl();
+void jp_nz_nn();
+void jp_z_nn();
+void jp_nc_nn();
+void jp_c_nn();
+
+void jr_e();
+void jr_nz_e();
+void jr_z_e();
+void jr_nc_e();
+void jr_c_e();

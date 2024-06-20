@@ -71,7 +71,7 @@ struct instruction instructions[256] = {
     {"DEC D", 0, dec_d},           // 0x15
     {"LD D d8", 1, ld_d_n8},       // 0x16
     {"RLA", 0, rla},              // 0x17
-    {"JR r8", 1, NULL},            // 0x18
+    {"JR r8", 1, jr_e},            // 0x18
     {"ADD HL DE", 0, add_de},        // 0x19
     {"LD A (DE)", 0, ld_a_dem},    // 0x1A
     {"DEC DE", 0, dec_de},         // 0x1B
@@ -79,7 +79,7 @@ struct instruction instructions[256] = {
     {"DEC E", 0, dec_e},           // 0x1D
     {"LD E d8", 1, ld_e_n8},       // 0x1E
     {"RRA", 0, rra},              // 0x1F
-    {"JR NZ r8", 1, NULL},         // 0x20
+    {"JR NZ r8", 1, jp_nz_nn},         // 0x20
     {"LD HL d16", 2, ld_hl_nn},    // 0x21
     {"LD (HL+) A", 0, ld_hli_a},   // 0x22
     {"INC HL", 0, inc_hl},         // 0x23
@@ -87,7 +87,7 @@ struct instruction instructions[256] = {
     {"DEC H", 0, dec_h},           // 0x25
     {"LD H d8", 1, NULL},          // 0x26
     {"DAA", 0, daa},               // 0x27
-    {"JR Z r8", 1, NULL},          // 0x28
+    {"JR Z r8", 1, jr_z_e},          // 0x28
     {"ADD HL HL", 0, add_hl},        // 0x29
     {"LD A (HL+)", 0, ld_a_hli},   // 0x2A
     {"DEC HL", 0, dec_hl},         // 0x2B
@@ -95,7 +95,7 @@ struct instruction instructions[256] = {
     {"DEC L", 0, dec_l},           // 0x2D
     {"LD L d8", 1, ld_l_n8},       // 0x2E
     {"CPL", 0, cpl},               // 0x2F
-    {"JR NC r8", 1, NULL},         // 0x30
+    {"JR NC r8", 1, jr_nc_e},         // 0x30
     {"LD SP d16", 2, ld_sp_n16},   // 0x31
     {"LD (HL-) A", 0, ld_hld_a},   // 0x32
     {"INC SP", 0, inc_sp},         // 0x33
@@ -103,7 +103,7 @@ struct instruction instructions[256] = {
     {"DEC (HL)", 0, dec_hlm},      // 0x35
     {"LD (HL) d8", 1, NULL},       // 0x36
     {"SCF", 0, scf},               // 0x37
-    {"JR C r8", 1, NULL},          // 0x38
+    {"JR C r8", 1, jr_c_e},          // 0x38
     {"ADD HL SP", 0, add_sp},        // 0x39
     {"LD A (HL-)", 0, ld_a_hld},   // 0x3A
     {"DEC SP", 0, dec_sp},         // 0x3B
@@ -241,15 +241,15 @@ struct instruction instructions[256] = {
     {"CP A", 0, cp_a},             // 0xBF
     {"RET NZ", 0, NULL},           // 0xC0
     {"POP BC", 0, pop_bc},         // 0xC1
-    {"JP NZ a16", 2, NULL},        // 0xC2
-    {"JP a16", 2, NULL},           // 0xC3
+    {"JP NZ a16", 2, jp_nz_nn},        // 0xC2
+    {"JNULLP a16", 2, jp_nn},           // 0xC3
     {"CALL NZ a16", 2, NULL},      // 0xC4
     {"PUSH BC", 0, push_bc},       // 0xC5
     {"ADD A d8", 1, add_n},        // 0xC6
     {"RST 00H", 0, NULL},          // 0xC7
     {"RET Z", 0, NULL},            // 0xC8
     {"RET", 0, NULL},              // 0xC9
-    {"JP Z a16", 2, NULL},         // 0xCA
+    {"JP Z a16", 2, jp_z_nn},         // 0xCA
     {"PREFIX CB", 0, NULL},        // 0xCB
     {"CALL Z a16", 2, NULL},       // 0xCC
     {"CALL a16", 2, NULL},         // 0xCD
@@ -257,14 +257,14 @@ struct instruction instructions[256] = {
     {"RST 08H", 0, NULL},          // 0xCF
     {"RET NC", 0, NULL},           // 0xD0
     {"POP DE", 0, pop_de},         // 0xD1
-    {"JP NC a16", 2, NULL},        // 0xD2
+    {"JP NC a16", 2, jp_nc_nn},        // 0xD2
     {"CALL NC a16", 2, NULL},      // 0xD4
     {"PUSH DE", 0, push_de},       // 0xD5
     {"SUB d8", 1, sub_n},          // 0xD6
     {"RST 10H", 0, NULL},          // 0xD7
     {"RET C", 0, NULL},            // 0xD8
     {"RETI", 0, NULL},             // 0xD9
-    {"JP C a16", 2, NULL},         // 0xDA
+    {"JP C a16", 2, jp_c_nn},         // 0xDA
     {"CALL C a16", 2, NULL},       // 0xDC
     {"SBC A d8", 1, scb_n},        // 0xDE
     {"RST 18H", 0, NULL},          // 0xDF
@@ -275,7 +275,7 @@ struct instruction instructions[256] = {
     {"AND d8", 1, and_n},          // 0xE6
     {"RST 20H", 0, NULL},          // 0xE7
     {"ADD SP r8", 1, add_sp_n},        // 0xE8
-    {"JP (HL)", 0, NULL},          // 0xE9
+    {"JP (HL)", 0, jp_hl},          // 0xE9
     {"LD (a16) A", 2, ld_nn_a},    // 0xEA
     {"XOR d8", 1, xor_n},           // 0xEE
     {"RST 28H", 0, NULL},          // 0xEF
@@ -812,4 +812,64 @@ void rra() {
     registers.f &= ~(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
 }
 
+void jp_nn() {
+    pc = m16;
+}
+void jp_hl() {
+    pc = registers.hl;
+}
+void jp_nz_nn() {
+    if ((registers.f & FLAGS_ZERO) == 0) {
+        pc = m16;
+    }
+}
+void jp_z_nn() {
+    if ((registers.f & FLAGS_ZERO) != 0) {
+        pc = m16;
+    }
+}
+void jp_nc_nn() {
+    if ((registers.f & FLAGS_CARRY) == 0) {
+        pc = m16;
+    }
+}
+void jp_c_nn() {
+    if ((registers.f & FLAGS_CARRY) != 0) {
+        pc = m16;
+    }
+}
+
+void jr_e() {
+    const int8_t e = m8;
+    pc++;
+    pc += e;
+}
+void jr_nz_e() {
+    if ((registers.f & FLAGS_ZERO) == 0) {
+        const int8_t e = m8;
+        pc++;
+        pc += e;
+    }
+}
+void jr_z_e() {
+    if ((registers.f & FLAGS_ZERO) != 0) {
+        const int8_t e = m8;
+        pc++;
+        pc += e;
+    }
+}
+void jr_nj_e() {
+    if ((registers.f & FLAGS_CARRY) == 0) {
+        const int8_t e = m8;
+        pc++;
+        pc += e;
+    }
+}
+void jr_j_e() {
+    if ((registers.f & FLAGS_CARRY) != 0) {
+        const int8_t e = m8;
+        pc++;
+        pc += e;
+    }
+}
 
