@@ -243,7 +243,7 @@ struct instruction instructions[256] = {
     {"POP BC", 0, pop_bc},         // 0xC1
     {"JP NZ a16", 2, jp_nz_nn},        // 0xC2
     {"JNULLP a16", 2, jp_nn},           // 0xC3
-    {"CALL NZ a16", 2, NULL},      // 0xC4
+    {"CALL NZ a16", 2, call_nz_nn},      // 0xC4
     {"PUSH BC", 0, push_bc},       // 0xC5
     {"ADD A d8", 1, add_n},        // 0xC6
     {"RST 00H", 0, NULL},          // 0xC7
@@ -251,21 +251,21 @@ struct instruction instructions[256] = {
     {"RET", 0, NULL},              // 0xC9
     {"JP Z a16", 2, jp_z_nn},         // 0xCA
     {"PREFIX CB", 0, NULL},        // 0xCB
-    {"CALL Z a16", 2, NULL},       // 0xCC
-    {"CALL a16", 2, NULL},         // 0xCD
+    {"CALL Z a16", 2, call_z_nn},       // 0xCC
+    {"CALL a16", 2, call_nn},         // 0xCD
     {"ADC A d8", 1, NULL},         // 0xCE
     {"RST 08H", 0, NULL},          // 0xCF
     {"RET NC", 0, NULL},           // 0xD0
     {"POP DE", 0, pop_de},         // 0xD1
     {"JP NC a16", 2, jp_nc_nn},        // 0xD2
-    {"CALL NC a16", 2, NULL},      // 0xD4
+    {"CALL NC a16", 2, call_nc_nn},      // 0xD4
     {"PUSH DE", 0, push_de},       // 0xD5
     {"SUB d8", 1, sub_n},          // 0xD6
     {"RST 10H", 0, NULL},          // 0xD7
     {"RET C", 0, NULL},            // 0xD8
     {"RETI", 0, NULL},             // 0xD9
     {"JP C a16", 2, jp_c_nn},         // 0xDA
-    {"CALL C a16", 2, NULL},       // 0xDC
+    {"CALL C a16", 2, call_c_nn},       // 0xDC
     {"SBC A d8", 1, scb_n},        // 0xDE
     {"RST 18H", 0, NULL},          // 0xDF
     {"LDH (a8) A", 1, ldh_n_a},    // 0xE0
@@ -870,6 +870,50 @@ void jr_j_e() {
         const int8_t e = m8;
         pc++;
         pc += e;
+    }
+}
+
+void call_nn() {
+    registers.sp--;
+    write8(registers.sp, msb(pc));
+    registers.sp--;
+    write8(registers.sp, lsb(pc));
+    pc = m16;
+}
+void call_nz_nn() {
+    if ((registers.f & FLAGS_ZERO) == 0) {
+        registers.sp--;
+        write8(registers.sp, msb(pc));
+        registers.sp--;
+        write8(registers.sp, lsb(pc));
+        pc = m16;
+    }
+}
+void call_z_nn() {
+    if ((registers.f & FLAGS_ZERO) != 0) {
+        registers.sp--;
+        write8(registers.sp, msb(pc));
+        registers.sp--;
+        write8(registers.sp, lsb(pc));
+        pc = m16;
+    }
+}
+void call_nc_nn() {
+    if ((registers.f & FLAGS_ZERO) == 0) {
+        registers.sp--;
+        write8(registers.sp, msb(pc));
+        registers.sp--;
+        write8(registers.sp, lsb(pc));
+        pc = m16;
+    }
+}
+void call_c_nn() {
+    if ((registers.f & FLAGS_ZERO) != 0) {
+        registers.sp--;
+        write8(registers.sp, msb(pc));
+        registers.sp--;
+        write8(registers.sp, lsb(pc));
+        pc = m16;
     }
 }
 

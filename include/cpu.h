@@ -344,3 +344,9 @@ void jr_nz_e();
 void jr_z_e();
 void jr_nc_e();
 void jr_c_e();
+
+void call_nn();
+void call_nz_nn();
+void call_z_nn();
+void call_nc_nn();
+void call_c_nn();
