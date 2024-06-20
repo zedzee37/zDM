@@ -81,7 +81,7 @@ const struct instruction instructions[256] = {
 	{ "RRA", 0, rra },                           // 0x1f
 	{ "JR NZ, 0x%02X", 1, jr_nz_e },             // 0x20
 	{ "LD HL, 0x%04X", 2, ld_hl_nn },            // 0x21
-	{ "LDI (HL), A", 0, NULL },             // 0x22
+	{ "LDI (HL), A", 0, ld_hli_a },             // 0x22
 	{ "INC HL", 0, inc_hl },                     // 0x23
 	{ "INC H", 0, inc_h },                       // 0x24
 	{ "DEC H", 0, dec_h },                       // 0x25
@@ -89,7 +89,7 @@ const struct instruction instructions[256] = {
 	{ "DAA", 0, daa },                           // 0x27
 	{ "JR Z, 0x%02X", 1, jr_z_e },               // 0x28
 	{ "ADD HL, HL", 0, add_hl },              // 0x29
-	{ "LDI A, (HL)", 0, NULL },             // 0x2a
+	{ "LDI A, (HL)", 0, ld_a_hli },             // 0x2a
 	{ "DEC HL", 0, dec_hl },                     // 0x2b
 	{ "INC L", 0, inc_l },                       // 0x2c
 	{ "DEC L", 0, dec_l },                       // 0x2d
@@ -97,11 +97,11 @@ const struct instruction instructions[256] = {
 	{ "CPL", 0, cpl },                           // 0x2f
 	{ "JR NC, 0x%02X", 1, jr_nc_e },             // 0x30
 	{ "LD SP, 0x%04X", 2, ld_sp_n16 },            // 0x31
-	{ "LDD (HL), A", 0, NULL },             // 0x32
+	{ "LDD (HL), A", 0, ld_hld_a },             // 0x32
 	{ "INC SP", 0, inc_sp },                     // 0x33
 	{ "INC (HL)", 0, inc_hlm },                  // 0x34
 	{ "DEC (HL)", 0, dec_hlm },                  // 0x35
-	{ "LD (HL), 0x%02X", 1, NULL },          // 0x36
+	{ "LD (HL), 0x%02X", 1, ld_hl_n8 },          // 0x36
 	{ "SCF", 0, scf },                           // 0x37
 	{ "JR C, 0x%02X", 1, jr_c_e },               // 0x38
 	{ "ADD HL, SP", 0, add_sp },              // 0x39
@@ -245,7 +245,7 @@ const struct instruction instructions[256] = {
 	{ "JP 0x%04X", 2, jp_nn },                   // 0xc3
 	{ "CALL NZ, 0x%04X", 2, call_nz_nn },        // 0xc4
 	{ "PUSH BC", 0, push_bc },                   // 0xc5
-	{ "ADD A, 0x%02X", 1, NULL },             // 0xc6
+	{ "ADD A, 0x%02X", 1, add_n },             // 0xc6
 	{ "RST 0x00", 0, rst_00 },                    // 0xc7
 	{ "RET Z", 0, ret_z },                       // 0xc8
 	{ "RET", 0, ret },                           // 0xc9
@@ -271,9 +271,9 @@ const struct instruction instructions[256] = {
 	{ "UNKNOWN", 0, NULL },                 // 0xdd
 	{ "SBC 0x%02X", 1, sbc_n },                  // 0xde
 	{ "RST 0x18", 0, rst_18 },                   // 0xdf
-	{ "LD (0xFF00 + 0x%02X), A", 1, NULL },// 0xe0
+	{ "LD (0xFF00 + 0x%02X), A", 1, ldh_n_a },// 0xe0
 	{ "POP HL", 0, pop_hl },                     // 0xe1
-	{ "LD (0xFF00 + C), A", 0, NULL },      // 0xe2
+	{ "LD (0xFF00 + C), A", 0, ldh_c_a },      // 0xe2
 	{ "UNKNOWN", 0, NULL },                 // 0xe3
 	{ "UNKNOWN", 0, NULL },                 // 0xe4
 	{ "PUSH HL", 0, push_hl },                   // 0xe5
@@ -281,15 +281,15 @@ const struct instruction instructions[256] = {
 	{ "RST 0x20", 0, rst_20 },                   // 0xe7
 	{ "ADD SP,0x%02X", 1, add_sp_n },            // 0xe8
 	{ "JP HL", 0, jp_hl },                       // 0xe9
-	{ "LD (0x%04X), A", 2, NULL },           // 0xea
+	{ "LD (0x%04X), A", 2, ld_nn_a },           // 0xea
 	{ "UNKNOWN", 0, NULL },                 // 0xeb
 	{ "UNKNOWN", 0, NULL },                 // 0xec
 	{ "UNKNOWN", 0, NULL },                 // 0xed
 	{ "XOR 0x%02X", 1, xor_n },                  // 0xee
 	{ "RST 0x28", 0, rst_28 },                   // 0xef
-	{ "LD A, (0xFF00 + 0x%02X)", 1, NULL },// 0xf0
+	{ "LD A, (0xFF00 + 0x%02X)", 1, ldh_a_n },// 0xf0
 	{ "POP AF", 0, pop_af },                     // 0xf1
-	{ "LD A, (0xFF00 + C)", 0, NULL },      // 0xf2
+	{ "LD A, (0xFF00 + C)", 0, ldh_a_c },      // 0xf2
 	{ "DI", 0, di },                        // 0xf3
 	{ "UNKNOWN", 0, NULL },                 // 0xf4
 	{ "PUSH AF", 0, push_af },                   // 0xf5
