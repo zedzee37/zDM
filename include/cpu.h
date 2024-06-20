@@ -118,6 +118,7 @@ void ld_l_n8();
 void ld_sp_n16();
 void ld_hl_n8();
 void ld_a_n8();
+void ld_sp_hl();
 
 void ld_b_b();
 void ld_b_c();
@@ -350,3 +351,19 @@ void call_nz_nn();
 void call_z_nn();
 void call_nc_nn();
 void call_c_nn();
+
+void ret();
+void ret_nz();
+void ret_z();
+void ret_nc();
+void ret_c();
+void reti();
+
+void rst_00();
+void rst_08();
+void rst_10();
+void rst_18();
+void rst_20();
+void rst_28();
+void rst_30();
+void rst_38();

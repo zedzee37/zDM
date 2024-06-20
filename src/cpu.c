@@ -239,59 +239,59 @@ struct instruction instructions[256] = {
     {"CP L", 0, cp_l},             // 0xBD
     {"CP (HL)", 0, cp_hl},         // 0xBE
     {"CP A", 0, cp_a},             // 0xBF
-    {"RET NZ", 0, NULL},           // 0xC0
+    {"RET NZ", 0, ret_nz},           // 0xC0
     {"POP BC", 0, pop_bc},         // 0xC1
     {"JP NZ a16", 2, jp_nz_nn},        // 0xC2
     {"JNULLP a16", 2, jp_nn},           // 0xC3
     {"CALL NZ a16", 2, call_nz_nn},      // 0xC4
     {"PUSH BC", 0, push_bc},       // 0xC5
     {"ADD A d8", 1, add_n},        // 0xC6
-    {"RST 00H", 0, NULL},          // 0xC7
-    {"RET Z", 0, NULL},            // 0xC8
-    {"RET", 0, NULL},              // 0xC9
+    {"RST 00H", 0, rst_00},          // 0xC7
+    {"RET Z", 0, ret_z},            // 0xC8
+    {"RET", 0, ret},              // 0xC9
     {"JP Z a16", 2, jp_z_nn},         // 0xCA
     {"PREFIX CB", 0, NULL},        // 0xCB
     {"CALL Z a16", 2, call_z_nn},       // 0xCC
     {"CALL a16", 2, call_nn},         // 0xCD
-    {"ADC A d8", 1, NULL},         // 0xCE
-    {"RST 08H", 0, NULL},          // 0xCF
-    {"RET NC", 0, NULL},           // 0xD0
+    {"ADC A d8", 1, adc_n},         // 0xCE
+    {"RST 08H", 0, rst_08},          // 0xCF
+    {"RET NC", 0, ret_nc},           // 0xD0
     {"POP DE", 0, pop_de},         // 0xD1
     {"JP NC a16", 2, jp_nc_nn},        // 0xD2
     {"CALL NC a16", 2, call_nc_nn},      // 0xD4
     {"PUSH DE", 0, push_de},       // 0xD5
     {"SUB d8", 1, sub_n},          // 0xD6
-    {"RST 10H", 0, NULL},          // 0xD7
-    {"RET C", 0, NULL},            // 0xD8
-    {"RETI", 0, NULL},             // 0xD9
+    {"RST 10H", 0, rst_10},          // 0xD7
+    {"RET C", 0, ret_c},            // 0xD8
+    {"RETI", 0, reti},             // 0xD9
     {"JP C a16", 2, jp_c_nn},         // 0xDA
     {"CALL C a16", 2, call_c_nn},       // 0xDC
     {"SBC A d8", 1, scb_n},        // 0xDE
-    {"RST 18H", 0, NULL},          // 0xDF
+    {"RST 18H", 0, rst_18},          // 0xDF
     {"LDH (a8) A", 1, ldh_n_a},    // 0xE0
     {"POP HL", 0, pop_hl},         // 0xE1
     {"LD (C) A", 0, ldh_c_a},      // 0xE2
     {"PUSH HL", 0, push_hl},       // 0xE5
     {"AND d8", 1, and_n},          // 0xE6
-    {"RST 20H", 0, NULL},          // 0xE7
+    {"RST 20H", 0, rst_20},          // 0xE7
     {"ADD SP r8", 1, add_sp_n},        // 0xE8
     {"JP (HL)", 0, jp_hl},          // 0xE9
     {"LD (a16) A", 2, ld_nn_a},    // 0xEA
     {"XOR d8", 1, xor_n},           // 0xEE
-    {"RST 28H", 0, NULL},          // 0xEF
+    {"RST 28H", 0, rst_28},          // 0xEF
     {"LDH A (a8)", 1, ldh_a_n},    // 0xF0
     {"POP AF", 0, pop_af},         // 0xF1
     {"LD A (C)", 0, ldh_a_c},      // 0xF2
     {"DI", 0, NULL},               // 0xF3
     {"PUSH AF", 0, push_af},       // 0xF5
     {"OR d8", 1, or_n},            // 0xF6
-    {"RST 30H", 0, NULL},          // 0xF7
+    {"RST 30H", 0, rst_30},          // 0xF7
     {"LD HL SP+r8", 1, ld_hl_spe}, // 0xF8
-    {"LD SP HL", 0, NULL},         // 0xF9
+    {"LD SP HL", 0, ld_sp_hl},         // 0xF9
     {"LD A (a16)", 2, ld_a_nn},    // 0xFA
     {"EI", 0, NULL},               // 0xFB
     {"CP d8", 1, cp_n},            // 0xFE
-    {"RST 38H", 0, NULL},          // 0xFF
+    {"RST 38H", 0, rst_38},          // 0xFF
 };
 
 bool execute() {
@@ -387,8 +387,6 @@ void set_add16_flags(uint16_t result, uint16_t a, uint16_t b) {
 }
 
 void nop() {}
-
-void rst_38() {}
 
 MULTI_MACRO(INC)
     void inc_af() { registers.af++; }
@@ -899,7 +897,7 @@ void call_z_nn() {
     }
 }
 void call_nc_nn() {
-    if ((registers.f & FLAGS_ZERO) == 0) {
+    if ((registers.f & FLAGS_CARRY) == 0) {
         registers.sp--;
         write8(registers.sp, msb(pc));
         registers.sp--;
@@ -908,7 +906,7 @@ void call_nc_nn() {
     }
 }
 void call_c_nn() {
-    if ((registers.f & FLAGS_ZERO) != 0) {
+    if ((registers.f & FLAGS_CARRY) != 0) {
         registers.sp--;
         write8(registers.sp, msb(pc));
         registers.sp--;
@@ -917,3 +915,99 @@ void call_c_nn() {
     }
 }
 
+void ret() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    pc = u16(lsb, msb);
+}
+void ret_nz() {
+    if ((registers.f & FLAGS_ZERO) == 0) {
+        uint8_t lsb = read8(registers.sp++);
+        uint8_t msb = read8(registers.sp++);
+        pc = u16(lsb, msb);
+    }
+}
+void ret_z() {
+    if ((registers.f & FLAGS_ZERO) != 0) {
+        uint8_t lsb = read8(registers.sp++);
+        uint8_t msb = read8(registers.sp++);
+        pc = u16(lsb, msb);
+    }
+}
+void ret_nc() {
+    if ((registers.f & FLAGS_CARRY) == 0) {
+        uint8_t lsb = read8(registers.sp++);
+        uint8_t msb = read8(registers.sp++);
+        pc = u16(lsb, msb);
+    }
+}
+void ret_c() {
+    if ((registers.f & FLAGS_CARRY) != 0) {
+        uint8_t lsb = read8(registers.sp++);
+        uint8_t msb = read8(registers.sp++);
+        pc = u16(lsb, msb);
+    }
+}
+void reti() {
+    uint8_t lsb = read8(registers.sp++);
+    uint8_t msb = read8(registers.sp++);
+    pc = u16(lsb, msb);
+    // TODO: IME = 1
+}
+
+void rst_00() {
+    const uint8_t n = 0x00;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_08() {
+    const uint8_t n = 0x08;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_10() {
+    const uint8_t n = 0x10;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_18() {
+    const uint8_t n = 0x18;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_20() {
+    const uint8_t n = 0x20;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_28() {
+    const uint8_t n = 0x28;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_30() {
+    const uint8_t n = 0x30;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
+void rst_38() {
+    const uint8_t n = 0x38;
+    registers.sp--;
+    write8(registers.sp--, msb(pc));
+    write8(registers.sp, lsb(pc));
+    pc = u16(n, 0x00);
+}
