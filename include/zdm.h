@@ -6,5 +6,6 @@
 #define SCREEN_HEIGHT 144
 #define TARGET_SCALE 7
 
-extern bool init_gameboy(char *rom);
+int debug(int argc, char *argv[]);
+bool init_gameboy(char *rom);
 extern void exit_gameboy();

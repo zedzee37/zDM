@@ -10,7 +10,7 @@ release:
 	${CC} ${SRC} -lSDL2 -I${INCLUDE} -o ${BIN}.o -O3 
 
 debug:
-	${D_CC} ${SRC} -g -lSDL2 -I${INCLUDE} -o ${D_BIN}.o -DDEBUG=1
+	${D_CC} ${SRC} -g -lSDL2 -I${INCLUDE} -o ${D_BIN}.o -DDEBUGF=1
 
 run:
 	make release

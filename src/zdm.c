@@ -1,16 +1,15 @@
 #include "zdm.h"
-#include "cpu.h"
 #include "memory.h"
-#include "test.h"
+#include "util.h"
+#include <string.h>
 
 bool running = true;
 
 int main(int argc, char **argv) {
-	#ifdef DEBUG
-    debug(argc, argv); 
+	#ifdef DEBUGF
+    return debug(argc, argv); 
     #endif
 
-	#ifndef DEBUG
 	// Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
@@ -61,15 +60,20 @@ int main(int argc, char **argv) {
 	exit_gameboy();
 
 	return 0;
-	#endif
+}
+
+int debug(int argc, char *argv[]) {
+    init_gameboy(argv[1]);
+    return 0;
 }
 
 bool init_gameboy(char *rom) {
-	struct registers r;
-	registers = r;
-	if (!load_rom(rom)) {
-		return false;
-	}
+    union Memory mem;
+    memset(mem.memory, 0, 0xffff);
+    
+    if (!read_rom(&mem, rom)) {
+        return false;
+    }
 
 	return true;
 }

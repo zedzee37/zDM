@@ -1,49 +1,29 @@
-#include "memory.h"
-#include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
+#include "memory.h"
+#include "util.h"
 
-uint16_t pc;
-uint8_t memory[0xFFFF];
-
-int load_rom(char *rom) {
-	FILE *fp = fopen(rom, "rb");
-
-	if (fp == NULL) {
-		return false;
-	}
-
-	fseek(fp, 0, SEEK_END);
-	int size = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
-
-	fread(memory, sizeof(uint8_t), size, fp);
-
-	fclose(fp);
-	return true;
+uint8_t read(union Memory *mem, uint16_t address) {
+    return mem->memory[address];    
 }
 
-uint8_t read8(uint16_t p) {
-    return memory[p];
+void write8(union Memory *mem, uint16_t address, uint8_t v) {
+    mem->memory[address] = v;
 }
 
-uint16_t read16(uint16_t p) {
-    return u16(memory[p], memory[p + 1]);
-}
+int read_rom(union Memory *mem, char *file_path) {
+    FILE *fp = fopen(file_path, "rb");
+    
+    if (fp == NULL) {
+        util_log(ERROR, "Could not read from file: %s", file_path);
+        return 0;
+    }
 
-void write8(uint16_t address, uint8_t v) {
-    memory[address] = v;
-}
+    fseek(fp, 0, SEEK_END);
+    size_t size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
 
-uint8_t msb(uint16_t v) {
-    return v >> 8;
-}
+    fread(mem->program, 0x3fff, sizeof(uint8_t), fp);
+    fclose(fp);
 
-uint8_t lsb(uint8_t v) {
-    return v & 0xFF;
-}
-
-uint16_t u16(uint8_t lsb, uint8_t msb) {
-    return (msb << 8) | lsb;
+    return 1;
 }
