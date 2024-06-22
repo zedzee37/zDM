@@ -1,0 +1,1 @@
+/home/zedzee/Documents/rust_stuff/zDM/target/debug/zdm: /home/zedzee/Documents/rust_stuff/zDM/src/cpu.rs /home/zedzee/Documents/rust_stuff/zDM/src/main.rs /home/zedzee/Documents/rust_stuff/zDM/src/memory.rs /home/zedzee/Documents/rust_stuff/zDM/src/registers.rs /home/zedzee/Documents/rust_stuff/zDM/src/util.rs
