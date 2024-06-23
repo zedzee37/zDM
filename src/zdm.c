@@ -1,5 +1,7 @@
 #include "zdm.h"
 #include "memory.h"
+#include "registers.h"
+#include "cpu.h"
 #include "util.h"
 #include <string.h>
 
@@ -70,6 +72,9 @@ int debug(int argc, char *argv[]) {
 bool init_gameboy(char *rom) {
     union Memory mem;
     memset(mem.memory, 0, 0xffff);
+
+    struct Registers registers;
+    struct Cpu cpu = { .mem = &mem, .registers = &registers };
     
     if (!read_rom(&mem, rom)) {
         return false;
