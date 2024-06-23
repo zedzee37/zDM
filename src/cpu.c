@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "registers.h"
+#include "util.h"
 
 void execute(struct Cpu *cpu) {
     uint8_t instruction = read(cpu->mem, cpu->registers->pc);
@@ -10,6 +11,10 @@ void execute(struct Cpu *cpu) {
 
 void execute_instruction(struct Cpu *cpu, uint8_t instruction) {
     char *op = instructions[instruction];
+    
+    if (cpu->instruction_logging) {
+        util_log(DEBUG, "%x    %x    %s", cpu->registers->pc, instruction, op);
+    }
 
     switch (instruction) {
         case 0x00:    // NOP
@@ -763,4 +768,5 @@ char *instructions[256] = {
     "UNKNOWN",
     "UNKNOWN",
     "CP d8",
+    "RST 38H",
 };

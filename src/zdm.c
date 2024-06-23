@@ -80,11 +80,10 @@ bool init_gameboy(char *rom) {
     }
 
     struct Registers registers;
-    struct Cpu cpu = { .mem = &mem, .registers = &registers };
+    struct Cpu cpu = { .mem = &mem, .registers = &registers, .instruction_logging = false };
     struct Debugger dbgr = { .step = 0, .cpu = &cpu };
     
-    print_region(mem.program, 0, 0xf);
-    print_registers(&registers);
+    enter_debug_mode(&dbgr);
 	return true;
 }
 

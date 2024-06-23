@@ -1,8 +1,10 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 struct Cpu {
     union Memory *mem;
     struct Registers *registers;
+    bool instruction_logging;
 };
 
 extern char *instructions[256];
