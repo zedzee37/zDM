@@ -27,3 +27,11 @@ int read_rom(union Memory *mem, char *file_path) {
 
     return 1;
 }
+
+void print_region(uint8_t region[], int from, size_t size) {
+    util_log(DEBUG, "\x1b[32mMemory region from: %x, to %x:", from, size);
+    for (int i = from; i < size; i++) {
+        uint8_t v = region[i];
+        util_log(DEBUG, "    %X    %x    %d", i, v, v); 
+    }
+}

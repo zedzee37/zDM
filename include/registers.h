@@ -9,6 +9,8 @@
 #define ENABLE_FLAG(f, fl) f |= fl
 #define DISABLE_FLAG(f, fl) f &= ~fl
 
+#define PRINT_REGISTER_INFO(r, s) util_log(DEBUG, "    Register: %s, contents: [h: %x, n: %d]", s, registers->r, registers->r)
+
 struct Registers {
     struct {
         union {
@@ -49,3 +51,5 @@ struct Registers {
     uint16_t pc;
     uint16_t sp;
 };
+
+extern void print_registers(struct Registers *rgsters);

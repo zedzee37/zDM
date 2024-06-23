@@ -1,8 +1,10 @@
 #include "zdm.h"
 #include "memory.h"
 #include "registers.h"
+#include "debugger.h"
 #include "cpu.h"
 #include "util.h"
+#include <stdlib.h>
 #include <string.h>
 
 bool running = true;
@@ -73,13 +75,16 @@ bool init_gameboy(char *rom) {
     union Memory mem;
     memset(mem.memory, 0, 0xffff);
 
-    struct Registers registers;
-    struct Cpu cpu = { .mem = &mem, .registers = &registers };
-    
     if (!read_rom(&mem, rom)) {
         return false;
     }
 
+    struct Registers registers;
+    struct Cpu cpu = { .mem = &mem, .registers = &registers };
+    struct Debugger dbgr = { .step = 0, .cpu = &cpu };
+    
+    print_region(mem.program, 0, 0xf);
+    print_registers(&registers);
 	return true;
 }
 

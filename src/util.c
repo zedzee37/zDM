@@ -19,15 +19,17 @@ void util_log(enum LogLevel level, char *message, ...) {
 
     // Print the log level
     switch (level) {
-        case 1:
+        case INFO:
             printf("\x1b[34m[INFO] ");
             break;
-        case 2:
-            printf("\x1b[33m[WARNING] ");
+        case DEBUG:
+            printf("\x1b[33m[DEBUG] ");
             break;
-        case 3:
+        case ERROR:
             printf("\x1b[31m[ERROR] ");
             break;
+        case WARNING:
+            printf("\x1b[33m[WARNING] ");
         default:
             printf("[UNKNOWN] ");
     }

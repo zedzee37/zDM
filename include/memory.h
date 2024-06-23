@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 union Memory {
     uint8_t program[0x3fff];
@@ -18,4 +19,5 @@ union Memory {
 extern uint8_t read(union Memory *mem, uint16_t address);
 extern void write8(union Memory *mem, uint16_t address, uint8_t v);
 extern int read_rom(union Memory *mem, char *fp);
+extern void print_region(uint8_t region[], int from, size_t size);
 
