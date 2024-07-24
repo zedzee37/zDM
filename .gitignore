@@ -1,7 +1,2 @@
-src/.clangd
-.clangd
-*.o
-t.h
-fn.c
-*.gb
-core
+zig-out
+.zig-cache
