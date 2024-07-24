@@ -4,3 +4,4 @@ src/.clangd
 t.h
 fn.c
 *.gb
+core
